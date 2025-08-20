@@ -1,5 +1,7 @@
 .idea/
+.gitignore
 src/test/
+build/
 bin/
 target/
 *.iml
