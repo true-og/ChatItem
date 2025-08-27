@@ -12,24 +12,29 @@ import me.dadus33.chatitem.utils.Messages;
 
 public class OneItemShower extends InvShower {
 
-	private final ItemStack item;	
-	
-	public OneItemShower(Player cible, ItemStack item) {
-		super("one_item", cible);
-		
-		this.item = item.clone();
-	}
-	
-	@Override
-	public void open(Player p) {
-		Inventory inv = ChatItem.getPlatform().createInventory(new CustomInventoryHolder(), 9, Messages.getMessage("inventory.name", "%cible%", name));
-		
-		for(int i = 0; i < 9; i++)
-			inv.setItem(i, ItemUtils.ITEM_EMPTY_BROWN);
-		
-		inv.setItem(4, item);
+    private final ItemStack item;
 
-		p.openInventory(inv);
-	}
-	
+    public OneItemShower(Player cible, ItemStack item) {
+
+        super("one_item", cible);
+
+        this.item = item.clone();
+
+    }
+
+    @Override
+    public void open(Player p) {
+
+        Inventory inv = ChatItem.getPlatform().createInventory(new CustomInventoryHolder(), 9,
+                Messages.getMessage("inventory.name", "%cible%", name));
+
+        for (int i = 0; i < 9; i++)
+            inv.setItem(i, ItemUtils.ITEM_EMPTY_BROWN);
+
+        inv.setItem(4, item);
+
+        p.openInventory(inv);
+
+    }
+
 }

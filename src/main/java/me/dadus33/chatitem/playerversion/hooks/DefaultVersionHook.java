@@ -7,8 +7,11 @@ import me.dadus33.chatitem.utils.Version;
 
 public class DefaultVersionHook implements IPlayerVersion {
 
-	@Override
-	public int getProtocolVersion(Player p) {
-		return Version.getVersion().MAX_VER;
-	}
+    @Override
+    public int getProtocolVersion(Player p) {
+
+        return Version.getVersion().MAX_VER;
+
+    }
+
 }

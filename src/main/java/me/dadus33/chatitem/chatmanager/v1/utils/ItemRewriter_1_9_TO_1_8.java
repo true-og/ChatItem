@@ -1,11 +1,11 @@
 package me.dadus33.chatitem.chatmanager.v1.utils;
 
-
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 
 import java.util.HashMap;
 import java.util.Map;
+
 /**
  * Thanks to the developers of ViaVersion for this!
  */
@@ -20,6 +20,7 @@ public class ItemRewriter_1_9_TO_1_8 {
     private static final Map<Integer, Integer> POTION_INDEX = new HashMap<>();
 
     static {
+
         /* Entities */
         registerEntity(1, "Item");
         registerEntity(2, "XPOrb");
@@ -137,107 +138,166 @@ public class ItemRewriter_1_9_TO_1_8 {
 
     }
 
-
     static void toClient(Item item) {
+
         if (item != null) {
+
             if (item.getId().equals("minecraft:spawn_egg") && item.getData() != 0) { // Monster Egg
+
                 CompoundTag tag = item.getTag();
                 if (tag == null) {
+
                     tag = new CompoundTag("tag");
+
                 }
+
                 CompoundTag entityTag = new CompoundTag("EntityTag");
                 if (ENTTIY_ID_TO_NAME.containsKey((int) item.getData())) {
+
                     StringTag id = new StringTag("id", ENTTIY_ID_TO_NAME.get((int) item.getData()));
                     entityTag.put(id);
                     tag.put(entityTag);
+
                 }
+
                 item.setTag(tag);
                 item.setData((short) 0);
+
             }
+
             if (item.getId().equals("minecraft:potion")) { // Potion
+
                 CompoundTag tag = item.getTag();
                 if (tag == null) {
+
                     tag = new CompoundTag("tag");
+
                 }
+
                 if (item.getData() >= 16384) {
+
                     item.setId("minecraft:splash_potion"); // splash id
                     item.setData((short) (item.getData() - 8192));
+
                 }
+
                 String name = potionNameFromDamage(item.getData());
                 StringTag potion = new StringTag("Potion", "minecraft:" + name);
                 tag.put(potion);
                 item.setTag(tag);
                 item.setData((short) 0);
+
             }
+
         }
+
     }
 
-
-
     static void reversedToClient(Item item) {
+
         if (item != null) {
+
             if (item.getId().equals("minecraft:spawn_egg") && item.getData() == 0) { // Monster Egg
+
                 CompoundTag tag = item.getTag();
                 int data = 0;
-                if(tag != null) {
+                if (tag != null) {
+
                     if (tag.get("EntityTag") instanceof CompoundTag) {
+
                         CompoundTag entityTag = tag.get("EntityTag");
                         if (entityTag.get("id") instanceof StringTag) {
+
                             StringTag id = entityTag.get("id");
                             if (ENTTIY_NAME_TO_ID.containsKey(id.getValue()))
                                 data = ENTTIY_NAME_TO_ID.get(id.getValue());
+
                         }
+
                         tag.remove("EntityTag");
+
                     }
+
                 }
+
                 item.setTag(tag);
                 item.setData((short) data);
+
             }
+
             if (item.getId().equals("minecraft:potion")) { // Potion
+
                 CompoundTag tag = item.getTag();
                 int data = 0;
-                if(tag != null) {
+                if (tag != null) {
+
                     if (tag.get("Potion") instanceof StringTag) {
+
                         StringTag potion = tag.get("Potion");
                         String potionName = potion.getValue().replace("minecraft:", "");
                         if (POTION_NAME_TO_ID.containsKey(potionName)) {
+
                             data = POTION_NAME_TO_ID.get(potionName);
+
                         }
+
                         tag.remove("Potion");
+
                     }
+
                 }
+
                 item.setTag(tag);
                 item.setData((short) data);
+
             }
+
             // Splash potion
             if (item.getId().equals("minecraft:splash_potion")) {
+
                 CompoundTag tag = item.getTag();
                 int data = 0;
                 item.setId("minecraft:potion"); // Potion
-                if(tag != null) {
+                if (tag != null) {
+
                     if (tag.get("Potion") instanceof StringTag) {
+
                         StringTag potion = tag.get("Potion");
                         String potionName = potion.getValue().replace("minecraft:", "");
                         if (POTION_NAME_TO_ID.containsKey(potionName)) {
+
                             data = POTION_NAME_TO_ID.get(potionName) + 8192;
+
                         }
+
                         tag.remove("Potion");
+
                     }
+
                 }
+
                 item.setTag(tag);
                 item.setData((short) data);
+
             }
+
         }
+
     }
 
-
     private static String potionNameFromDamage(short damage) {
+
         String cached = POTION_ID_TO_NAME.get((int) damage);
         if (cached != null) {
+
             return cached;
+
         }
+
         if (damage == 0) {
+
             return "water";
+
         }
 
         int effect = damage & 0xF;
@@ -250,6 +310,7 @@ public class ItemRewriter_1_9_TO_1_8 {
 
         String id;
         switch (effect) {
+
             case 1:
                 id = "regeneration";
                 break;
@@ -299,11 +360,11 @@ public class ItemRewriter_1_9_TO_1_8 {
                 canEnhance = false;
                 break;
 
-
             default:
                 canEnhance = false;
                 canExtend = false;
                 switch (name) {
+
                     case 0:
                         id = "mundane";
                         break;
@@ -315,28 +376,42 @@ public class ItemRewriter_1_9_TO_1_8 {
                         break;
                     default:
                         id = "empty";
+
                 }
+
         }
 
         if (effect > 0) {
+
             if (canEnhance && enhanced) {
+
                 id = "strong_" + id;
+
             } else if (canExtend && extended) {
+
                 id = "long_" + id;
+
             }
+
         }
 
         return id;
+
     }
 
     private static void registerEntity(Integer id, String name) {
+
         ENTTIY_ID_TO_NAME.put(id, name);
         ENTTIY_NAME_TO_ID.put(name, id);
+
     }
 
     private static void registerPotion(Integer id, String name) {
+
         POTION_INDEX.put(id, POTION_ID_TO_NAME.size());
         POTION_ID_TO_NAME.put(id, name);
         POTION_NAME_TO_ID.put(name, id);
+
     }
+
 }

@@ -9,14 +9,18 @@ import me.dadus33.chatitem.itemnamer.INamer;
 
 public class ChatItemTranslationNamer implements INamer {
 
-	@Override
-	public Priority getPriority() {
-		return Priority.SMALL;
-	}
+    @Override
+    public Priority getPriority() {
 
-	@Override
-	public String getName(Player p, ItemStack item, Storage storage) {
-		return Translation.getOr(item, null);
-	}
+        return Priority.SMALL;
+
+    }
+
+    @Override
+    public String getName(Player p, ItemStack item, Storage storage) {
+
+        return Translation.getOr(item, null);
+
+    }
 
 }

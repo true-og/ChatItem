@@ -11,47 +11,63 @@ import me.dadus33.chatitem.ChatItem;
 
 public class EcoEnchantsSupport {
 
-	private static int supportedVersion = 0;
-	
-	public static boolean hasSupport() {
-		return supportedVersion > 0;
-	}
-	
-	public static boolean load() {
-		String ver = ChatItem.getPlatform().getPluginVersion(Bukkit.getPluginManager().getPlugin("EcoEnchants"));
-		if(ver.startsWith("8."))
-			supportedVersion = 8;
-		else if(ver.startsWith("10."))
-			supportedVersion = 10;
-		else if(ver.startsWith("11."))
-			supportedVersion = 11;
-		else if(ver.startsWith("12."))
-			supportedVersion = 12;
-		else {
-			ChatItem.getInstance().getLogger().warning("Failed to find support version for EcoEnchants " + ver);
-			return false;
-		}
-		return true;
-	}
-	
-	@SuppressWarnings("deprecation")
-	public static ItemStack manageItem(ItemStack item) {
-		if(supportedVersion == 8) {
-			List<String> addLore = EcoEnchantsV8Support.getLores(item);
-			if (!addLore.isEmpty()) {
-				ItemMeta meta = item.getItemMeta();
-				List<String> lores = meta.hasLore() ? meta.getLore() : new ArrayList<>();
-				for (int i = 0; i < addLore.size(); i++)
-					lores.add(i, addLore.get(i));
+    private static int supportedVersion = 0;
 
-				meta.setLore(lores);
-				item.setItemMeta(meta);
-				ChatItem.debug("Added " + addLore.size() + " lores from EcoEnchants");
-			} else
-				ChatItem.debug("No lore to add from EcoEnchants");
-		} else if(supportedVersion >= 10) {
-			EcoEnchantsV10Support.display(item);
-		}
-		return item;
-	}
+    public static boolean hasSupport() {
+
+        return supportedVersion > 0;
+
+    }
+
+    public static boolean load() {
+
+        String ver = ChatItem.getPlatform().getPluginVersion(Bukkit.getPluginManager().getPlugin("EcoEnchants"));
+        if (ver.startsWith("8."))
+            supportedVersion = 8;
+        else if (ver.startsWith("10."))
+            supportedVersion = 10;
+        else if (ver.startsWith("11."))
+            supportedVersion = 11;
+        else if (ver.startsWith("12."))
+            supportedVersion = 12;
+        else {
+
+            ChatItem.getInstance().getLogger().warning("Failed to find support version for EcoEnchants " + ver);
+            return false;
+
+        }
+        return true;
+
+    }
+
+    @SuppressWarnings("deprecation")
+    public static ItemStack manageItem(ItemStack item) {
+
+        if (supportedVersion == 8) {
+
+            List<String> addLore = EcoEnchantsV8Support.getLores(item);
+            if (!addLore.isEmpty()) {
+
+                ItemMeta meta = item.getItemMeta();
+                List<String> lores = meta.hasLore() ? meta.getLore() : new ArrayList<>();
+                for (int i = 0; i < addLore.size(); i++)
+                    lores.add(i, addLore.get(i));
+
+                meta.setLore(lores);
+                item.setItemMeta(meta);
+                ChatItem.debug("Added " + addLore.size() + " lores from EcoEnchants");
+
+            } else
+                ChatItem.debug("No lore to add from EcoEnchants");
+
+        } else if (supportedVersion >= 10) {
+
+            EcoEnchantsV10Support.display(item);
+
+        }
+
+        return item;
+
+    }
+
 }

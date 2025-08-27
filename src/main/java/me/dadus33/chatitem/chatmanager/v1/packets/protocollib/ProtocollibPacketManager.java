@@ -19,36 +19,54 @@ import me.dadus33.chatitem.chatmanager.v1.packets.PacketType;
 
 public class ProtocollibPacketManager extends PacketManager {
 
-	private final ProtocolManager protocolManager;
-	
-	public ProtocollibPacketManager(ChatItem pl) {
-		protocolManager = ProtocolLibrary.getProtocolManager();
-		List<com.comphenix.protocol.PacketType> list = new ArrayList<>();
-		list.add(Play.Server.CHAT);
-		try {
-			list.add((com.comphenix.protocol.PacketType) Play.Server.class.getDeclaredField("SYSTEM_CHAT").get(null));
-		} catch (Exception e) {
-			 // ignore because using old version
-		}
-		protocolManager.addPacketListener(new PacketAdapter(pl, ListenerPriority.LOWEST, list) {
-			@Override
-			public void onPacketSending(PacketEvent e) {
-				Player p = e.getPlayer();
-		        if (p == null || e.isPlayerTemporary())
-		        	return;
-				ChatItemPacket packet = onPacketSent(PacketType.getType(e.getPacket().getHandle().getClass().getSimpleName()), p, e.getPacket().getHandle());
-				if(packet == null) {
-					ChatItem.debug("Can't find packet: " + e.getPacket().getHandle().getClass().getName());
-					return;
-				}
-		        if(!e.isCancelled())
-		        	e.setCancelled(packet.isCancelled());
-			}
-		});
-	}
-	
-	@Override
-	public void stop() {
-		protocolManager.removePacketListeners(ChatItem.getInstance());
-	}
+    private final ProtocolManager protocolManager;
+
+    public ProtocollibPacketManager(ChatItem pl) {
+
+        protocolManager = ProtocolLibrary.getProtocolManager();
+        List<com.comphenix.protocol.PacketType> list = new ArrayList<>();
+        list.add(Play.Server.CHAT);
+        try {
+
+            list.add((com.comphenix.protocol.PacketType) Play.Server.class.getDeclaredField("SYSTEM_CHAT").get(null));
+
+        } catch (Exception e) {
+
+            // ignore because using old version
+        }
+
+        protocolManager.addPacketListener(new PacketAdapter(pl, ListenerPriority.LOWEST, list) {
+
+            @Override
+            public void onPacketSending(PacketEvent e) {
+
+                Player p = e.getPlayer();
+                if (p == null || e.isPlayerTemporary())
+                    return;
+                ChatItemPacket packet = onPacketSent(
+                        PacketType.getType(e.getPacket().getHandle().getClass().getSimpleName()), p,
+                        e.getPacket().getHandle());
+                if (packet == null) {
+
+                    ChatItem.debug("Can't find packet: " + e.getPacket().getHandle().getClass().getName());
+                    return;
+
+                }
+
+                if (!e.isCancelled())
+                    e.setCancelled(packet.isCancelled());
+
+            }
+
+        });
+
+    }
+
+    @Override
+    public void stop() {
+
+        protocolManager.removePacketListeners(ChatItem.getInstance());
+
+    }
+
 }

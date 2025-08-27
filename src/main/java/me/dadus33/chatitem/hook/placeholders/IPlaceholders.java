@@ -4,6 +4,6 @@ import org.bukkit.entity.Player;
 
 public interface IPlaceholders {
 
-	String replace(Player p, String text);
+    String replace(Player p, String text);
 
 }

@@ -10,12 +10,16 @@ import com.willfp.ecoenchants.enchantments.util.EnchantChecks;
 
 public class EcoEnchantsV8Support {
 
-	public static List<String> getLores(ItemStack item) {
-		List<String> lores = new ArrayList<>();
-		EnchantChecks.getEnchantsOnItem(item).forEach((en, lvl) -> {
-			lores.add(EnchantmentCache.getEntry(en).getNameWithLevel(lvl));
-		});
-		return lores;
-	}
+    public static List<String> getLores(ItemStack item) {
+
+        List<String> lores = new ArrayList<>();
+        EnchantChecks.getEnchantsOnItem(item).forEach((en, lvl) -> {
+
+            lores.add(EnchantmentCache.getEntry(en).getNameWithLevel(lvl));
+
+        });
+        return lores;
+
+    }
 
 }

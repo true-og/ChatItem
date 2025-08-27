@@ -11,16 +11,24 @@ import net.md_5.bungee.api.chat.BaseComponent;
 
 public class HexNicksV2PlayerNamer implements IPlayerNamer {
 
-	@Override
-	public BaseComponent[] getName(Player p) {
-		try {
-			Object api = Class.forName("dev.majek.hexnicks.Nicks").getDeclaredMethod("api").invoke(null);
-			CompletableFuture<Component> storedNick = (CompletableFuture<Component>) api.getClass().getDeclaredMethod("getStoredNick", Player.class).invoke(api, p);
-			return BungeeComponentSerializer.get().serialize(storedNick.join());
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return new BaseComponent[0];
-	}
+    @Override
+    public BaseComponent[] getName(Player p) {
+
+        try {
+
+            Object api = Class.forName("dev.majek.hexnicks.Nicks").getDeclaredMethod("api").invoke(null);
+            CompletableFuture<Component> storedNick = (CompletableFuture<Component>) api.getClass()
+                    .getDeclaredMethod("getStoredNick", Player.class).invoke(api, p);
+            return BungeeComponentSerializer.get().serialize(storedNick.join());
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
+        }
+
+        return new BaseComponent[0];
+
+    }
 
 }

@@ -21,118 +21,179 @@ import me.dadus33.chatitem.utils.Utils;
 
 public interface IComponentManager {
 
-	default boolean hasConditions() {
-		return true;
-	}
+    default boolean hasConditions() {
 
-	String getBaseComponentAsJSON(ChatItemPacket packet);
+        return true;
 
-	void writeJson(ChatItemPacket packet, String json);
+    }
 
-	default @Nullable Chat getChat(String json) {
-		json = ChatManager.fixSeparator(json);
-		try {
-			Chat possibleChat = Chat.getFrom(json);
-			if (possibleChat != null) // found something with basic search
-				return possibleChat;
-			Chat chat = new Searching(json).search();
-			if (chat == null)
-				ChatItem.debug("Failed to find chat for JSON " + json);
-			return chat;
-		} catch (Exception e) {
-			e.printStackTrace();
-		} // not JSON
-		return null;
-	}
+    String getBaseComponentAsJSON(ChatItemPacket packet);
 
-	default Object manageContent(Player viewer, Chat chat, ChatItemPacket packet, String json, Storage c) throws Exception {
-		String message;
-		if (Utils.isBeforeChatJson(viewer))
-			message = JSONManipulator.getInstance().parseEmpty(chat, json, chat.getAction().hasItem() ? ChatManager.getMaxLinesFromItem(viewer, chat.getAction().getItem()) : new ArrayList<>(), chat.getPlayer());
-		else
-			message = JSONManipulator.getInstance().parse(chat, json, chat.getAction(), ChatManager.getNameForChatAction(viewer, chat, c));
-		if (message != null) {
-			ChatItem.debug("(v1) Writing message: " + message);
-			writeJson(packet, message);
-		}
-		return packet.getPacket();
-	}
+    void writeJson(ChatItemPacket packet, String json);
 
-	default Object manageEmpty(Player p, Chat chat, ChatItemPacket packet, String json, Storage c) {
-		String message = JSONManipulator.getInstance().parseEmpty(chat, json, c.tooltipHand, chat.getPlayer());
-		if (message != null) {
-			ChatItem.debug("(v1) Writing empty message: " + message);
-			writeJson(packet, message);
-		}
-		return packet.getPacket();
-	}
+    default @Nullable Chat getChat(String json) {
 
-	public static class Searching {
+        json = ChatManager.fixSeparator(json);
+        try {
 
-		private boolean found = false;
-		private String id = "", json;
+            Chat possibleChat = Chat.getFrom(json);
+            if (possibleChat != null) // found something with basic search
+                return possibleChat;
+            Chat chat = new Searching(json).search();
+            if (chat == null)
+                ChatItem.debug("Failed to find chat for JSON " + json);
+            return chat;
 
-		public Searching(String json) {
-			this.json = json;
-		}
+        } catch (Exception e) {
 
-		private Chat search() {
-			JsonObject jsonObj;
-			try {
-				jsonObj = JsonParser.parseString(json).getAsJsonObject();
-			} catch (Exception e) {
-				if(searchInString(json))
-					return getWithId();
-				return null;
-			}
-			if (jsonObj.has("extra")) {
-				if (searchInExtra(jsonObj.getAsJsonArray("extra"))) {
-					return getWithId();
-				}
-			}
-			if (jsonObj.has("text")) {
-				JsonElement text = jsonObj.get("text");
-				if (text.isJsonObject() && searchInObject(text.getAsJsonObject()))
-					return getWithId();
-				else if (text.isJsonArray() && searchInExtra(text.getAsJsonArray()))
-					return getWithId();
-				else if (text.isJsonPrimitive() && searchInString(text.getAsString()))
-					return getWithId();
-			}
-			return null;
-		}
+            e.printStackTrace();
 
-		private Chat getWithId() {
-			return id != "" && Utils.isInteger(id) ? Chat.getChat(Integer.parseInt(id)).orElse(null) : null;
-		}
+        } // not JSON
 
-		private boolean searchInExtra(JsonArray json) {
-			for (JsonElement element : json) {
-				if (element.isJsonObject()) {
-					JsonObject withObj = element.getAsJsonObject();
-					if (withObj.has("extra") && searchInExtra(withObj.getAsJsonArray("extra")))
-						return true;
-					else if (withObj.has("text") && searchInObject(withObj))
-						return true;
-				}
-			}
-			return false;
-		}
+        return null;
 
-		private boolean searchInObject(JsonObject json) {
-			return json.has("text") && json.get("text").isJsonPrimitive() && searchInString(json.get("text").getAsString());
-		}
+    }
 
-		private boolean searchInString(String s) {
-			for (char c : ChatManager.fixSeparator(s).toCharArray()) {
-				if (c == ChatManager.SEPARATOR)
-					found = true;
-				else if (c == ChatManager.SEPARATOR_END)
-					return true;
-				else if (found)
-					id += c;
-			}
-			return id != "" && Utils.isInteger(id) && Chat.getChat(Integer.parseInt(id)).isPresent();
-		}
-	}
+    default Object manageContent(Player viewer, Chat chat, ChatItemPacket packet, String json, Storage c)
+            throws Exception
+    {
+
+        String message;
+        if (Utils.isBeforeChatJson(viewer))
+            message = JSONManipulator.getInstance().parseEmpty(chat, json,
+                    chat.getAction().hasItem() ? ChatManager.getMaxLinesFromItem(viewer, chat.getAction().getItem())
+                            : new ArrayList<>(),
+                    chat.getPlayer());
+        else
+            message = JSONManipulator.getInstance().parse(chat, json, chat.getAction(),
+                    ChatManager.getNameForChatAction(viewer, chat, c));
+        if (message != null) {
+
+            ChatItem.debug("(v1) Writing message: " + message);
+            writeJson(packet, message);
+
+        }
+
+        return packet.getPacket();
+
+    }
+
+    default Object manageEmpty(Player p, Chat chat, ChatItemPacket packet, String json, Storage c) {
+
+        String message = JSONManipulator.getInstance().parseEmpty(chat, json, c.tooltipHand, chat.getPlayer());
+        if (message != null) {
+
+            ChatItem.debug("(v1) Writing empty message: " + message);
+            writeJson(packet, message);
+
+        }
+
+        return packet.getPacket();
+
+    }
+
+    public static class Searching {
+
+        private boolean found = false;
+        private String id = "", json;
+
+        public Searching(String json) {
+
+            this.json = json;
+
+        }
+
+        private Chat search() {
+
+            JsonObject jsonObj;
+            try {
+
+                jsonObj = JsonParser.parseString(json).getAsJsonObject();
+
+            } catch (Exception e) {
+
+                if (searchInString(json))
+                    return getWithId();
+                return null;
+
+            }
+
+            if (jsonObj.has("extra")) {
+
+                if (searchInExtra(jsonObj.getAsJsonArray("extra"))) {
+
+                    return getWithId();
+
+                }
+
+            }
+
+            if (jsonObj.has("text")) {
+
+                JsonElement text = jsonObj.get("text");
+                if (text.isJsonObject() && searchInObject(text.getAsJsonObject()))
+                    return getWithId();
+                else if (text.isJsonArray() && searchInExtra(text.getAsJsonArray()))
+                    return getWithId();
+                else if (text.isJsonPrimitive() && searchInString(text.getAsString()))
+                    return getWithId();
+
+            }
+
+            return null;
+
+        }
+
+        private Chat getWithId() {
+
+            return id != "" && Utils.isInteger(id) ? Chat.getChat(Integer.parseInt(id)).orElse(null) : null;
+
+        }
+
+        private boolean searchInExtra(JsonArray json) {
+
+            for (JsonElement element : json) {
+
+                if (element.isJsonObject()) {
+
+                    JsonObject withObj = element.getAsJsonObject();
+                    if (withObj.has("extra") && searchInExtra(withObj.getAsJsonArray("extra")))
+                        return true;
+                    else if (withObj.has("text") && searchInObject(withObj))
+                        return true;
+
+                }
+
+            }
+
+            return false;
+
+        }
+
+        private boolean searchInObject(JsonObject json) {
+
+            return json.has("text") && json.get("text").isJsonPrimitive()
+                    && searchInString(json.get("text").getAsString());
+
+        }
+
+        private boolean searchInString(String s) {
+
+            for (char c : ChatManager.fixSeparator(s).toCharArray()) {
+
+                if (c == ChatManager.SEPARATOR)
+                    found = true;
+                else if (c == ChatManager.SEPARATOR_END)
+                    return true;
+                else if (found)
+                    id += c;
+
+            }
+
+            return id != "" && Utils.isInteger(id) && Chat.getChat(Integer.parseInt(id)).isPresent();
+
+        }
+
+    }
+
 }

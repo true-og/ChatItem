@@ -1,20 +1,20 @@
 package me.dadus33.chatitem.chatmanager.v1.utils;
 
-
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 import com.github.steveice10.opennbt.tag.builtin.StringTag;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-
 
 /**
  * Thanks to the developers of ViaVersion for this!
  */
 @Deprecated
 public class ItemRewriter_1_11_TO_1_10 {
+
     private static BiMap<String, String> oldToNewNames = HashBiMap.create();
 
     static {
+
         oldToNewNames.put("AreaEffectCloud", "minecraft:area_effect_cloud");
         oldToNewNames.put("ArmorStand", "minecraft:armor_stand");
         oldToNewNames.put("Arrow", "minecraft:arrow");
@@ -90,43 +90,68 @@ public class ItemRewriter_1_11_TO_1_10 {
         oldToNewNames.put("Zombie", "minecraft:zombie");
         oldToNewNames.put("ZombieHorse", "minecraft:zombie_horse");
         oldToNewNames.put("ZombieVillager", "minecraft:zombie_villager");
+
     }
 
     static void toClient(Item item) {
+
         if (hasEntityTag(item)) {
+
             CompoundTag entityTag = item.getTag().get("EntityTag");
             if (entityTag.get("id") instanceof StringTag) {
+
                 StringTag id = entityTag.get("id");
                 if (oldToNewNames.containsKey(id.getValue())) {
-                    id.setValue(oldToNewNames.get(id.getValue()));
-                }
-            }
-        }
-    }
 
+                    id.setValue(oldToNewNames.get(id.getValue()));
+
+                }
+
+            }
+
+        }
+
+    }
 
     static void reverseToClient(Item item) {
+
         if (hasEntityTag(item)) {
+
             CompoundTag entityTag = item.getTag().get("EntityTag");
             if (entityTag.get("id") instanceof StringTag) {
+
                 StringTag id = entityTag.get("id");
                 if (oldToNewNames.containsKey(id.getValue())) {
-                    id.setValue(oldToNewNames.get(id.getValue()));
-                }
-            }
-        }
-    }
 
+                    id.setValue(oldToNewNames.get(id.getValue()));
+
+                }
+
+            }
+
+        }
+
+    }
 
     private static boolean hasEntityTag(Item item) {
+
         if (item != null && item.getId().equals("minecraft:spawn_egg")) { // Monster Egg
+
             CompoundTag tag = item.getTag();
             if (tag != null && tag.contains("EntityTag") && tag.get("EntityTag") instanceof CompoundTag) {
+
                 if (((CompoundTag) tag.get("EntityTag")).get("id") instanceof StringTag) {
+
                     return true;
+
                 }
+
             }
+
         }
+
         return false;
+
     }
+
 }

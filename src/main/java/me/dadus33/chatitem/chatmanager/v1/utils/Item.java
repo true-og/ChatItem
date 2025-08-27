@@ -1,44 +1,61 @@
 package me.dadus33.chatitem.chatmanager.v1.utils;
 
-
 import com.github.steveice10.opennbt.tag.builtin.CompoundTag;
 
 @Deprecated
 public class Item {
+
     private String id;
     private byte amount;
     private short data;
     private CompoundTag tag;
 
-    public CompoundTag getTag(){
+    public CompoundTag getTag() {
+
         return tag;
+
     }
 
-    public void setTag(CompoundTag newTag){
+    public void setTag(CompoundTag newTag) {
+
         this.tag = newTag;
+
     }
 
-    public void setId(String newId){
+    public void setId(String newId) {
+
         this.id = newId;
+
     }
 
-    public void setData(short newData){
+    public void setData(short newData) {
+
         data = newData;
+
     }
 
-    public String getId(){
+    public String getId() {
+
         return id;
+
     }
 
-    public short getData(){
+    public short getData() {
+
         return data;
+
     }
 
-    public void setAmount(byte newAmount){
+    public void setAmount(byte newAmount) {
+
         this.amount = newAmount;
+
     }
 
-    public byte getAmount(){
+    public byte getAmount() {
+
         return amount;
+
     }
+
 }

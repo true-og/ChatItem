@@ -8,8 +8,11 @@ import net.md_5.bungee.api.chat.ComponentBuilder;
 
 public class DefaultPlayerNamer implements IPlayerNamer {
 
-	@Override
-	public BaseComponent[] getName(Player p) {
-		return new ComponentBuilder(p.getName()).create();
-	}
+    @Override
+    public BaseComponent[] getName(Player p) {
+
+        return new ComponentBuilder(p.getName()).create();
+
+    }
+
 }

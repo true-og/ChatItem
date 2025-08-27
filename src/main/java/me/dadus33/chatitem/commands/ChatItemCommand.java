@@ -31,161 +31,253 @@ import net.md_5.bungee.api.chat.TextComponent;
 @SuppressWarnings("deprecation")
 public class ChatItemCommand implements CommandExecutor, TabExecutor {
 
-	private static final List<String> ORDERS;
-	
-	static {
-		if(Utils.IS_PAPER)
-			ORDERS = Arrays.asList("chat", "paper", "packet", "all");
-		else
-			ORDERS = Arrays.asList("chat", "packet", "all");
-	}
-	
-	@Override
-	public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-		if (!(sender instanceof Player)) {
-			Messages.sendMessage(sender, "only-players");
-			return false;
-		}
-		Player p = (Player) sender;
-		if (args.length == 0) {
-			Messages.sendMessage(p, "chatitem-cmd.help");
-		} else if (args[0].equalsIgnoreCase("admin") && p.hasPermission("chatitem.reload")) {
-			InventoryListener.open(p);
-		} else if (args[0].equalsIgnoreCase("reload") && p.hasPermission("chatitem.reload")) {
-			ChatItem.reload(sender);
-		} else if (args[0].equalsIgnoreCase("ec") && ChatItem.getInstance().getStorage().cmdShow) {
-			sendCommandFormatFrom(p, ItemSlot.ENDERCHEST, Bukkit.getOnlinePlayers());
-		} else if (args[0].equalsIgnoreCase("inv") && ChatItem.getInstance().getStorage().cmdShow) {
-			sendCommandFormatFrom(p, ItemSlot.INVENTORY, Bukkit.getOnlinePlayers());
-		} else if (args[0].equalsIgnoreCase("show") && ChatItem.getInstance().getStorage().cmdShow) {
-			sendCommandFormatFrom(p, ItemSlot.getItemSlotByKey(args.length <= 1 ? "" : args[1]), Arrays.asList(p));
-		} else if (args[0].equalsIgnoreCase("broadcast") && ChatItem.getInstance().getStorage().cmdBroadcast) {
-			sendCommandFormatFrom(p, ItemSlot.getItemSlotByKey(args.length <= 1 ? "" : args[1]), Bukkit.getOnlinePlayers());
-		} else if (args[0].equalsIgnoreCase("link") || args[0].equalsIgnoreCase("links")) {
-			ConfigurationSection config = ChatItem.getInstance().getConfig()
-					.getConfigurationSection("messages.chatitem-cmd.links");
-			TextComponent text = new TextComponent(Storage.color(config.getString("begin")));
-			for (String key : config.getConfigurationSection("list").getKeys(false)) {
-				ConfigurationSection linkConfig = config.getConfigurationSection("list." + key);
-				TextComponent linkComp = new TextComponent(Storage.color(linkConfig.getString("message")));
-				String hover = Storage.color(linkConfig.getString("hover"));
-				if (hover != null)
-					linkComp.setHoverEvent(Utils.createTextHover(hover));
-				String link = linkConfig.getString("link");
-				if (link != null)
-					linkComp.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, link));
-				text.addExtra(linkComp);
-			}
-			p.spigot().sendMessage(text);
-		} else if (args[0].equalsIgnoreCase("select") && p.hasPermission("chatitem.reload")) {
-			if(args.length == 1) {
-				p.sendMessage(Colors.GRAY + "----------" + Colors.GOLD + " ChatItem - Setup " + Colors.GRAY + "----------");
-				p.sendMessage(Colors.AQUA + "Welcome in the help of setup." + Colors.YELLOW + " Please follow step by simply answer to test.");
-				sendCheckSelectMessage(p, ORDERS.get(0));
-			} else {
-				String tested = args[1];
-				if(!ORDERS.contains(tested)) {
-					p.sendMessage(Colors.RED + "Unknow test for " + tested + ".");
-					return false;
-				}
-				if(args.length == 2) {
-					p.sendMessage(Colors.RED + "Can't find if it works");
-					return false;
-				}
-				if(args[2].equalsIgnoreCase("yes")) {
-					ChatManager.setTesting(null);
-					InventoryListener.setInConfig("manager", tested);
-					p.sendMessage(Colors.GREEN + "Perfect ! Updating config ...");
-					ChatItem.reload(p);
-				} else if(args[2].equalsIgnoreCase("no")) {
-					int index = ORDERS.indexOf(tested);
-					if(ORDERS.size() == (index + 1)) {
-						p.sendMessage(Colors.RED + "Sad. Sorry but nothing is available. I suggest you to come on discord for more help. Do '/chatitem link' for all links.");
-						ChatManager.setTesting(null);
-					} else {
-						p.sendMessage(Colors.RED + "Sad. Checking for next manager ...");
-						sendCheckSelectMessage(p, ORDERS.get(index + 1));
-					}
-				} else {
-					p.sendMessage(Colors.RED + "Can't find if it works");
-				}
-			}
-		} else if (args[0].equalsIgnoreCase("seeinv")) {
-			if(args.length == 2 && Utils.isUUID(args[1])) {
-				InvShower inv = InvShower.get(args[1]);
-				if(inv == null) {
-					Messages.sendMessage(p, "seeinv_not_found");
-				} else {
-					inv.open(p);
-				}
-			} // else just ignore 
-		} else {
-			Messages.sendMessage(p, "chatitem-cmd.help");
-		}
-		return false;
-	}
-	
-	private void sendCommandFormatFrom(Player p, ItemSlot slot, Collection<? extends Player> receivers) {
-		if(slot == null) {
-			Messages.sendMessage(p, "chatitem-cmd.help");
-			return;
-		}
-		ChatAction action = ChatManager.getChatAction(slot, p);
-		ChatItem.debug("Action: " + action);
-		if(action.hasItem() && ItemUtils.isEmpty(action.getItem())) {
-			Messages.sendMessage(p, "empty-item");
-			return;
-		}
-		for(Player all : receivers)
-			ChatItem.getPlatform().sendMessage(all, p, action, slot.getShowMessage().replace("%name%", p.getName()).replace("%item%", ChatManager.SEPARATOR + ""));
-	}
-	
-	private void sendCheckSelectMessage(Player p, String testing) {
-		ChatManager.setTesting(testing);
-		p.chat("Checking for " + testing + ": [i]");
+    private static final List<String> ORDERS;
 
-		Bukkit.getScheduler().runTaskLater(ChatItem.getInstance(), () -> {
-			TextComponent text = new TextComponent(Colors.GOLD + "Did it worked fine? ");
-			TextComponent agree = new TextComponent(Colors.GREEN + "Yes");
-			agree.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/chatitem select " + testing + " yes"));
-			agree.setHoverEvent(Utils.createTextHover(Colors.GRAY + "Click to say it worked fine"));
-			text.addExtra(agree);
-			text.addExtra(", ");
-			TextComponent decline = new TextComponent(Colors.RED + "No");
-			decline.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/chatitem select " + testing + " no"));
-			decline.setHoverEvent(Utils.createTextHover(Colors.GRAY + "Click to say it's not working as expected"));
-			text.addExtra(decline);
-			if(testing.equalsIgnoreCase("packet"))
-				text.addExtra(" (This manager can have different result between 'chatitem select' and default chat for technical reasons. If nothing works, it's recommended to select it and try again)");
-			p.spigot().sendMessage(text);
-		}, 2);
-	}
+    static {
 
-	@Override
-	public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] arg) {
-		List<String> list = new ArrayList<>();
-		String prefix = arg[arg.length - 1].toLowerCase(Locale.ROOT);
-		if(arg.length <= 1) {
-			if(sender.hasPermission("chatitem.reload")) {
-				for (String s : Arrays.asList("admin", "reload", "select"))
-					if (prefix.isEmpty() || s.startsWith(prefix))
-						list.add(s);
-			}
-			if(ChatItem.getInstance().getStorage().cmdShow) {
-				for (String s : Arrays.asList("show", "ec", "inv"))
-					if (prefix.isEmpty() || s.startsWith(prefix))
-						list.add(s);
-			}
-			if (ChatItem.getInstance().getStorage().cmdBroadcast && (prefix.isEmpty() || "broadcast".startsWith(prefix)))
-				list.add("broadcast");
-			for (String s : Arrays.asList("help", "link"))
-				if (prefix.isEmpty() || s.startsWith(prefix))
-					list.add(s);
-		} else if(arg[0].equalsIgnoreCase("show") || arg[0].equalsIgnoreCase("broadcast")) {
-			for (ItemSlot slot : ItemSlot.values())
-				if (prefix.isEmpty() || slot.getKey().startsWith(prefix))
-					list.add(slot.getKey());
-		}
-		return list;
-	}
+        if (Utils.IS_PAPER)
+            ORDERS = Arrays.asList("chat", "paper", "packet", "all");
+        else
+            ORDERS = Arrays.asList("chat", "packet", "all");
+
+    }
+
+    @Override
+    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+
+        if (!(sender instanceof Player)) {
+
+            Messages.sendMessage(sender, "only-players");
+            return false;
+
+        }
+
+        Player p = (Player) sender;
+        if (args.length == 0) {
+
+            Messages.sendMessage(p, "chatitem-cmd.help");
+
+        } else if (args[0].equalsIgnoreCase("admin") && p.hasPermission("chatitem.reload")) {
+
+            InventoryListener.open(p);
+
+        } else if (args[0].equalsIgnoreCase("reload") && p.hasPermission("chatitem.reload")) {
+
+            ChatItem.reload(sender);
+
+        } else if (args[0].equalsIgnoreCase("ec") && ChatItem.getInstance().getStorage().cmdShow) {
+
+            sendCommandFormatFrom(p, ItemSlot.ENDERCHEST, Bukkit.getOnlinePlayers());
+
+        } else if (args[0].equalsIgnoreCase("inv") && ChatItem.getInstance().getStorage().cmdShow) {
+
+            sendCommandFormatFrom(p, ItemSlot.INVENTORY, Bukkit.getOnlinePlayers());
+
+        } else if (args[0].equalsIgnoreCase("show") && ChatItem.getInstance().getStorage().cmdShow) {
+
+            sendCommandFormatFrom(p, ItemSlot.getItemSlotByKey(args.length <= 1 ? "" : args[1]), Arrays.asList(p));
+
+        } else if (args[0].equalsIgnoreCase("broadcast") && ChatItem.getInstance().getStorage().cmdBroadcast) {
+
+            sendCommandFormatFrom(p, ItemSlot.getItemSlotByKey(args.length <= 1 ? "" : args[1]),
+                    Bukkit.getOnlinePlayers());
+
+        } else if (args[0].equalsIgnoreCase("link") || args[0].equalsIgnoreCase("links")) {
+
+            ConfigurationSection config = ChatItem.getInstance().getConfig()
+                    .getConfigurationSection("messages.chatitem-cmd.links");
+            TextComponent text = new TextComponent(Storage.color(config.getString("begin")));
+            for (String key : config.getConfigurationSection("list").getKeys(false)) {
+
+                ConfigurationSection linkConfig = config.getConfigurationSection("list." + key);
+                TextComponent linkComp = new TextComponent(Storage.color(linkConfig.getString("message")));
+                String hover = Storage.color(linkConfig.getString("hover"));
+                if (hover != null)
+                    linkComp.setHoverEvent(Utils.createTextHover(hover));
+                String link = linkConfig.getString("link");
+                if (link != null)
+                    linkComp.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, link));
+                text.addExtra(linkComp);
+
+            }
+
+            p.spigot().sendMessage(text);
+
+        } else if (args[0].equalsIgnoreCase("select") && p.hasPermission("chatitem.reload")) {
+
+            if (args.length == 1) {
+
+                p.sendMessage(
+                        Colors.GRAY + "----------" + Colors.GOLD + " ChatItem - Setup " + Colors.GRAY + "----------");
+                p.sendMessage(Colors.AQUA + "Welcome in the help of setup." + Colors.YELLOW
+                        + " Please follow step by simply answer to test.");
+                sendCheckSelectMessage(p, ORDERS.get(0));
+
+            } else {
+
+                String tested = args[1];
+                if (!ORDERS.contains(tested)) {
+
+                    p.sendMessage(Colors.RED + "Unknow test for " + tested + ".");
+                    return false;
+
+                }
+
+                if (args.length == 2) {
+
+                    p.sendMessage(Colors.RED + "Can't find if it works");
+                    return false;
+
+                }
+
+                if (args[2].equalsIgnoreCase("yes")) {
+
+                    ChatManager.setTesting(null);
+                    InventoryListener.setInConfig("manager", tested);
+                    p.sendMessage(Colors.GREEN + "Perfect ! Updating config ...");
+                    ChatItem.reload(p);
+
+                } else if (args[2].equalsIgnoreCase("no")) {
+
+                    int index = ORDERS.indexOf(tested);
+                    if (ORDERS.size() == (index + 1)) {
+
+                        p.sendMessage(Colors.RED
+                                + "Sad. Sorry but nothing is available. I suggest you to come on discord for more help. Do '/chatitem link' for all links.");
+                        ChatManager.setTesting(null);
+
+                    } else {
+
+                        p.sendMessage(Colors.RED + "Sad. Checking for next manager ...");
+                        sendCheckSelectMessage(p, ORDERS.get(index + 1));
+
+                    }
+
+                } else {
+
+                    p.sendMessage(Colors.RED + "Can't find if it works");
+
+                }
+
+            }
+
+        } else if (args[0].equalsIgnoreCase("seeinv")) {
+
+            if (args.length == 2 && Utils.isUUID(args[1])) {
+
+                InvShower inv = InvShower.get(args[1]);
+                if (inv == null) {
+
+                    Messages.sendMessage(p, "seeinv_not_found");
+
+                } else {
+
+                    inv.open(p);
+
+                }
+
+            } // else just ignore
+
+        } else {
+
+            Messages.sendMessage(p, "chatitem-cmd.help");
+
+        }
+
+        return false;
+
+    }
+
+    private void sendCommandFormatFrom(Player p, ItemSlot slot, Collection<? extends Player> receivers) {
+
+        if (slot == null) {
+
+            Messages.sendMessage(p, "chatitem-cmd.help");
+            return;
+
+        }
+
+        ChatAction action = ChatManager.getChatAction(slot, p);
+        ChatItem.debug("Action: " + action);
+        if (action.hasItem() && ItemUtils.isEmpty(action.getItem())) {
+
+            Messages.sendMessage(p, "empty-item");
+            return;
+
+        }
+
+        for (Player all : receivers)
+            ChatItem.getPlatform().sendMessage(all, p, action,
+                    slot.getShowMessage().replace("%name%", p.getName()).replace("%item%", ChatManager.SEPARATOR + ""));
+
+    }
+
+    private void sendCheckSelectMessage(Player p, String testing) {
+
+        ChatManager.setTesting(testing);
+        p.chat("Checking for " + testing + ": [i]");
+
+        Bukkit.getScheduler().runTaskLater(ChatItem.getInstance(), () -> {
+
+            TextComponent text = new TextComponent(Colors.GOLD + "Did it worked fine? ");
+            TextComponent agree = new TextComponent(Colors.GREEN + "Yes");
+            agree.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/chatitem select " + testing + " yes"));
+            agree.setHoverEvent(Utils.createTextHover(Colors.GRAY + "Click to say it worked fine"));
+            text.addExtra(agree);
+            text.addExtra(", ");
+            TextComponent decline = new TextComponent(Colors.RED + "No");
+            decline.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/chatitem select " + testing + " no"));
+            decline.setHoverEvent(Utils.createTextHover(Colors.GRAY + "Click to say it's not working as expected"));
+            text.addExtra(decline);
+            if (testing.equalsIgnoreCase("packet"))
+                text.addExtra(
+                        " (This manager can have different result between 'chatitem select' and default chat for technical reasons. If nothing works, it's recommended to select it and try again)");
+            p.spigot().sendMessage(text);
+
+        }, 2);
+
+    }
+
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] arg) {
+
+        List<String> list = new ArrayList<>();
+        String prefix = arg[arg.length - 1].toLowerCase(Locale.ROOT);
+        if (arg.length <= 1) {
+
+            if (sender.hasPermission("chatitem.reload")) {
+
+                for (String s : Arrays.asList("admin", "reload", "select"))
+                    if (prefix.isEmpty() || s.startsWith(prefix))
+                        list.add(s);
+
+            }
+
+            if (ChatItem.getInstance().getStorage().cmdShow) {
+
+                for (String s : Arrays.asList("show", "ec", "inv"))
+                    if (prefix.isEmpty() || s.startsWith(prefix))
+                        list.add(s);
+
+            }
+
+            if (ChatItem.getInstance().getStorage().cmdBroadcast
+                    && (prefix.isEmpty() || "broadcast".startsWith(prefix)))
+                list.add("broadcast");
+            for (String s : Arrays.asList("help", "link"))
+                if (prefix.isEmpty() || s.startsWith(prefix))
+                    list.add(s);
+
+        } else if (arg[0].equalsIgnoreCase("show") || arg[0].equalsIgnoreCase("broadcast")) {
+
+            for (ItemSlot slot : ItemSlot.values())
+                if (prefix.isEmpty() || slot.getKey().startsWith(prefix))
+                    list.add(slot.getKey());
+
+        }
+
+        return list;
+
+    }
+
 }

@@ -6,29 +6,48 @@ import org.bukkit.entity.Player;
 
 public abstract class PacketManager {
 
-	public void addPlayer(Player p) {}
-	public void removePlayer(Player p) {}
-	public abstract void stop();
+    public void addPlayer(Player p) {
 
-	private final ArrayList<PacketHandler> handlers = new ArrayList<>();
-	public boolean addHandler(PacketHandler handler) {
-		return !handlers.add(handler);
-	}
+    }
 
-	public boolean removeHandler(PacketHandler handler) {
-		return handlers.remove(handler);
-	}
+    public void removePlayer(Player p) {
 
-	public void notifyHandlersSent(ChatItemPacket packet) {
-		handlers.forEach((handler) -> handler.onSend(packet));
-	}
+    }
 
-	public ChatItemPacket onPacketSent(PacketType type, Player sender, Object packet) {
-		if(type == null) {
-			return null;
-		}
-		ChatItemPacket customPacket = new ChatItemPacket(type, packet, sender);
-		notifyHandlersSent(customPacket);
-		return customPacket;
-	}
+    public abstract void stop();
+
+    private final ArrayList<PacketHandler> handlers = new ArrayList<>();
+
+    public boolean addHandler(PacketHandler handler) {
+
+        return !handlers.add(handler);
+
+    }
+
+    public boolean removeHandler(PacketHandler handler) {
+
+        return handlers.remove(handler);
+
+    }
+
+    public void notifyHandlersSent(ChatItemPacket packet) {
+
+        handlers.forEach((handler) -> handler.onSend(packet));
+
+    }
+
+    public ChatItemPacket onPacketSent(PacketType type, Player sender, Object packet) {
+
+        if (type == null) {
+
+            return null;
+
+        }
+
+        ChatItemPacket customPacket = new ChatItemPacket(type, packet, sender);
+        notifyHandlersSent(customPacket);
+        return customPacket;
+
+    }
+
 }

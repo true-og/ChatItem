@@ -29,126 +29,203 @@ import net.md_5.bungee.chat.ComponentSerializer;
 
 public class StringComponentManager implements IComponentManager {
 
-	@Override
-	public String getBaseComponentAsJSON(ChatItemPacket packet) {
-		String json = packet.getContent().getStrings().readSafely(0);
-		if (json != null && json.startsWith("[") && json.endsWith("]")) { // if used as array instead of json obj
-			JsonArray extra = new JsonArray();
-			for (JsonElement element : JsonParser.parseString(json).getAsJsonArray()) {
-				if (element.isJsonObject()) { // ignore this
-					extra.add(element);
-				} else {
-					ChatItem.debug("Ignoring element " + element);
-				}
-			}
-			JsonObject jsonObject = new JsonObject();
-			jsonObject.addProperty("text", "");
-			jsonObject.add("extra", extra);
-			json = jsonObject.toString();
-		} else if (json == null) {
-			BaseComponent[] comp = packet.getContent().getSpecificModifier(BaseComponent[].class).readSafely(0);
-			if (comp != null)
-				return ComponentSerializer.toString(comp);
-		}
-		return json;
-	}
+    @Override
+    public String getBaseComponentAsJSON(ChatItemPacket packet) {
 
-	@Override
-	public void writeJson(ChatItemPacket packet, String json) {
-		try {
-			packet.setPacket(PacketEditingChatManager.createSystemChatPacket(json, packet.getPacket()));
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+        String json = packet.getContent().getStrings().readSafely(0);
+        if (json != null && json.startsWith("[") && json.endsWith("]")) { // if used as array instead of json obj
 
-	@Override
-	public Object manageContent(Player viewer, Chat chat, ChatItemPacket packet, String json, Storage c) throws Exception {
-		ChatAction action = chat.getAction();
-		if (action.hasItem())
-			return manage(viewer, chat, packet, ChatManager.getNameForChatAction(viewer, chat, c), Utils.createItemHover(action.getItem(), viewer), null);
-		else
-			return manage(viewer, chat, packet, ChatManager.getNameForChatAction(viewer, chat, c),
-					Utils.createTextHover(Messages.getMessage(action.getSlot().name().toLowerCase() + ".hover", "%cible%", chat.getPlayer().getName())), Utils.createRunCommand(action.getCommand()));
-	}
+            JsonArray extra = new JsonArray();
+            for (JsonElement element : JsonParser.parseString(json).getAsJsonArray()) {
 
-	@Override
-	public Object manageEmpty(Player viewer, Chat chat, ChatItemPacket packet, String json, Storage c) {
-		ComponentBuilder builder = new ComponentBuilder("");
-		c.tooltipHand.forEach(s -> builder.append(s));
-		HoverEvent hover;
-		ClickEvent click;
-		String rep;
-		ChatAction action = chat.getAction();
-		if (action.hasItem()) {
-			hover = Utils.createTextHover(builder.create());
-			rep = ChatManager.getHandName(chat);
-			click = null;
-		} else {
-			hover = Utils.createTextHover(Messages.getMessage(action.getSlot().name().toLowerCase() + ".hover", "%cible%", chat.getPlayer().getName()));
-			rep = Messages.getMessage(action.getSlot().name().toLowerCase() + ".chat", "%cible%", chat.getPlayer().getName());
-			click = Utils.createRunCommand(action.getCommand());
-		}
-		return manage(viewer, chat, packet, rep, hover, click);
-	}
+                if (element.isJsonObject()) { // ignore this
 
-	private Object manage(Player viewer, Chat chat, ChatItemPacket packet, String replacement, HoverEvent hover, ClickEvent click) {
-		BaseComponent[] components = packet.getContent().getSpecificModifier(BaseComponent[].class).readSafely(0);
-		if (components == null) {
-			String json = packet.getContent().getStrings().readSafely(0);
-			if (json != null && json.startsWith("[") && json.endsWith("]")) { // if used as array instead of json obj
-				JsonArray extra = new JsonArray();
-				for (JsonElement element : JsonParser.parseString(json).getAsJsonArray()) {
-					if (element.isJsonObject()) { // ignore this
-						extra.add(element);
-					} else {
-						ChatItem.debug("Ignoring element " + element);
-					}
-				}
-				JsonObject jsonObject = new JsonObject();
-				jsonObject.addProperty("text", "");
-				jsonObject.add("extra", extra);
-				json = jsonObject.toString();
-			}
-			ChatItem.debug("[StringComponentManager] Using JSON " + json);
-			try {
-				components = ComponentSerializer.parse(json);
-			} catch (Exception e) {
-				ChatItem.getInstance().getLogger().severe("Failed to parse JSON: " + json + ". Error:");
-				e.printStackTrace();
-				return packet.getPacket();
-			}
-		}
-		ChatItem.debug("Checking for " + components.length + " components");
-		Arrays.asList(components).forEach(comp -> checkComponent(comp, hover, click, replacement, chat));
+                    extra.add(element);
 
-		if (ChatItem.discordSrvSupport && DiscordSrvSupport.isSendingMessage() && viewer == chat.getPlayer())
-			DiscordSrvSupport.sendChatMessage(viewer, TextComponent.toLegacyText(components), null);
-		try {
-			packet.setPacket(PacketEditingChatManager.createSystemChatPacket(ComponentSerializer.toString(components), packet.getPacket()));
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return packet.getPacket();
-	}
+                } else {
 
-	private void checkComponent(BaseComponent comp, HoverEvent hover, ClickEvent click, String itemName, Chat chat) {
-		if (comp instanceof TextComponent) {
-			TextComponent tc = (TextComponent) comp;
-			if (ChatManager.containsSeparator(tc.getText())) {
-				String oldText = tc.getText();
-				ChatItem.debug("Changing text " + oldText + " to " + itemName + ", extra: " + (tc.getExtra() == null ? "-" : tc.getExtra().size()));
-				tc.setText(ChatManager.replaceSeparator(chat, oldText, itemName));
-				tc.setHoverEvent(hover);
-				if (click != null)
-					tc.setClickEvent(click);
-			} else
-				ChatItem.debug("No insert of text without separator: " + tc.getText() + " (legacy: " + tc.toLegacyText() + ")");
-		}
-		if (comp.getExtra() != null) {
-			for (BaseComponent extra : comp.getExtra()) {
-				checkComponent(extra, hover, click, itemName, chat);
-			}
-		}
-	}
+                    ChatItem.debug("Ignoring element " + element);
+
+                }
+
+            }
+
+            JsonObject jsonObject = new JsonObject();
+            jsonObject.addProperty("text", "");
+            jsonObject.add("extra", extra);
+            json = jsonObject.toString();
+
+        } else if (json == null) {
+
+            BaseComponent[] comp = packet.getContent().getSpecificModifier(BaseComponent[].class).readSafely(0);
+            if (comp != null)
+                return ComponentSerializer.toString(comp);
+
+        }
+
+        return json;
+
+    }
+
+    @Override
+    public void writeJson(ChatItemPacket packet, String json) {
+
+        try {
+
+            packet.setPacket(PacketEditingChatManager.createSystemChatPacket(json, packet.getPacket()));
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
+        }
+
+    }
+
+    @Override
+    public Object manageContent(Player viewer, Chat chat, ChatItemPacket packet, String json, Storage c)
+            throws Exception
+    {
+
+        ChatAction action = chat.getAction();
+        if (action.hasItem())
+            return manage(viewer, chat, packet, ChatManager.getNameForChatAction(viewer, chat, c),
+                    Utils.createItemHover(action.getItem(), viewer), null);
+        else
+            return manage(viewer, chat, packet, ChatManager.getNameForChatAction(viewer, chat, c),
+                    Utils.createTextHover(Messages.getMessage(action.getSlot().name().toLowerCase() + ".hover",
+                            "%cible%", chat.getPlayer().getName())),
+                    Utils.createRunCommand(action.getCommand()));
+
+    }
+
+    @Override
+    public Object manageEmpty(Player viewer, Chat chat, ChatItemPacket packet, String json, Storage c) {
+
+        ComponentBuilder builder = new ComponentBuilder("");
+        c.tooltipHand.forEach(s -> builder.append(s));
+        HoverEvent hover;
+        ClickEvent click;
+        String rep;
+        ChatAction action = chat.getAction();
+        if (action.hasItem()) {
+
+            hover = Utils.createTextHover(builder.create());
+            rep = ChatManager.getHandName(chat);
+            click = null;
+
+        } else {
+
+            hover = Utils.createTextHover(Messages.getMessage(action.getSlot().name().toLowerCase() + ".hover",
+                    "%cible%", chat.getPlayer().getName()));
+            rep = Messages.getMessage(action.getSlot().name().toLowerCase() + ".chat", "%cible%",
+                    chat.getPlayer().getName());
+            click = Utils.createRunCommand(action.getCommand());
+
+        }
+
+        return manage(viewer, chat, packet, rep, hover, click);
+
+    }
+
+    private Object manage(Player viewer, Chat chat, ChatItemPacket packet, String replacement, HoverEvent hover,
+            ClickEvent click)
+    {
+
+        BaseComponent[] components = packet.getContent().getSpecificModifier(BaseComponent[].class).readSafely(0);
+        if (components == null) {
+
+            String json = packet.getContent().getStrings().readSafely(0);
+            if (json != null && json.startsWith("[") && json.endsWith("]")) { // if used as array instead of json obj
+
+                JsonArray extra = new JsonArray();
+                for (JsonElement element : JsonParser.parseString(json).getAsJsonArray()) {
+
+                    if (element.isJsonObject()) { // ignore this
+
+                        extra.add(element);
+
+                    } else {
+
+                        ChatItem.debug("Ignoring element " + element);
+
+                    }
+
+                }
+
+                JsonObject jsonObject = new JsonObject();
+                jsonObject.addProperty("text", "");
+                jsonObject.add("extra", extra);
+                json = jsonObject.toString();
+
+            }
+
+            ChatItem.debug("[StringComponentManager] Using JSON " + json);
+            try {
+
+                components = ComponentSerializer.parse(json);
+
+            } catch (Exception e) {
+
+                ChatItem.getInstance().getLogger().severe("Failed to parse JSON: " + json + ". Error:");
+                e.printStackTrace();
+                return packet.getPacket();
+
+            }
+
+        }
+
+        ChatItem.debug("Checking for " + components.length + " components");
+        Arrays.asList(components).forEach(comp -> checkComponent(comp, hover, click, replacement, chat));
+
+        if (ChatItem.discordSrvSupport && DiscordSrvSupport.isSendingMessage() && viewer == chat.getPlayer())
+            DiscordSrvSupport.sendChatMessage(viewer, TextComponent.toLegacyText(components), null);
+        try {
+
+            packet.setPacket(PacketEditingChatManager.createSystemChatPacket(ComponentSerializer.toString(components),
+                    packet.getPacket()));
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
+        }
+
+        return packet.getPacket();
+
+    }
+
+    private void checkComponent(BaseComponent comp, HoverEvent hover, ClickEvent click, String itemName, Chat chat) {
+
+        if (comp instanceof TextComponent) {
+
+            TextComponent tc = (TextComponent) comp;
+            if (ChatManager.containsSeparator(tc.getText())) {
+
+                String oldText = tc.getText();
+                ChatItem.debug("Changing text " + oldText + " to " + itemName + ", extra: "
+                        + (tc.getExtra() == null ? "-" : tc.getExtra().size()));
+                tc.setText(ChatManager.replaceSeparator(chat, oldText, itemName));
+                tc.setHoverEvent(hover);
+                if (click != null)
+                    tc.setClickEvent(click);
+
+            } else
+                ChatItem.debug("No insert of text without separator: " + tc.getText() + " (legacy: " + tc.toLegacyText()
+                        + ")");
+
+        }
+
+        if (comp.getExtra() != null) {
+
+            for (BaseComponent extra : comp.getExtra()) {
+
+                checkComponent(extra, hover, click, itemName, chat);
+
+            }
+
+        }
+
+    }
+
 }

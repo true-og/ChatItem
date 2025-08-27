@@ -10,33 +10,40 @@ import org.bukkit.plugin.Plugin;
 
 public class PlayerNamerManager {
 
-	private static IPlayerNamer playerNamer;
-	public static IPlayerNamer getPlayerNamer() {
-		return playerNamer;
-	}
-	public static void setPlayerNamer(IPlayerNamer playerNamer) {
-		PlayerNamerManager.playerNamer = playerNamer;
-	}
-	
-	public static void load(ChatItem pl) {
-		Plugin plugin = Bukkit.getPluginManager().getPlugin("HexNicks");
+    private static IPlayerNamer playerNamer;
 
+    public static IPlayerNamer getPlayerNamer() {
 
-		if (plugin != null) {
-			char majorVersion = ChatItem.getPlatform().getPluginVersion(plugin).charAt(0);
+        return playerNamer;
 
-			if (majorVersion == '3')
-				setPlayerNamer(new HexNicksV3PlayerNamer());
-			else
-				setPlayerNamer(new HexNicksV2PlayerNamer());
+    }
 
-			pl.getLogger().info("Enable support for HexNicks plugin v" + majorVersion);
-			return;
-		}
+    public static void setPlayerNamer(IPlayerNamer playerNamer) {
 
+        PlayerNamerManager.playerNamer = playerNamer;
 
+    }
 
-		setPlayerNamer(new DefaultPlayerNamer());
+    public static void load(ChatItem pl) {
 
-	}
+        Plugin plugin = Bukkit.getPluginManager().getPlugin("HexNicks");
+
+        if (plugin != null) {
+
+            char majorVersion = ChatItem.getPlatform().getPluginVersion(plugin).charAt(0);
+
+            if (majorVersion == '3')
+                setPlayerNamer(new HexNicksV3PlayerNamer());
+            else
+                setPlayerNamer(new HexNicksV2PlayerNamer());
+
+            pl.getLogger().info("Enable support for HexNicks plugin v" + majorVersion);
+            return;
+
+        }
+
+        setPlayerNamer(new DefaultPlayerNamer());
+
+    }
+
 }

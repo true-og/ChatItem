@@ -61,7 +61,6 @@ repositories {
             mavenLocal()
         }
     }
-
 }
 
 /* ---------------------- Java project deps ---------------------------- */
@@ -69,7 +68,7 @@ dependencies {
     compileOnly("org.purpurmc.purpur:purpur-api:1.19.4-R0.1-SNAPSHOT") // Declare Purpur API version to be packaged.
     implementation("com.google.code.gson:gson:2.9.0")
     implementation("com.github.GeyserMC:opennbt:1.5")
-	implementation("commons-lang:commons-lang:2.6")
+    implementation("commons-lang:commons-lang:2.6")
     compileOnly(files("libs/ProtocolLib-5.0.jar")) // Import Legacy ProtocolLib API.
     compileOnly("com.meowj:LangUtils:1.9")
     compileOnly("com.viaversion:viaversion-api:5.0.3")
@@ -122,10 +121,30 @@ tasks.withType<JavaCompile>().configureEach {
     options.encoding = "UTF-8" // Use UTF-8 file encoding.
 }
 
-/* ------------------------------- Checkstyle --------------------------- */
+/* ----------------------------- Auto Formatting ------------------------ */
+spotless {
+    java {
+        eclipse().configFile("config/formatter/eclipse-java-formatter.xml") // Eclipse java formatting.
+        leadingTabsToSpaces() // Convert leftover leading tabs to spaces.
+        removeUnusedImports() // Remove imports that aren't being called.
+    }
+    kotlinGradle {
+        ktfmt().kotlinlangStyle().configure { it.setMaxWidth(120) } // JetBrains Kotlin formatting.
+        target("build.gradle.kts", "settings.gradle.kts") // Gradle files to format.
+    }
+}
+
 checkstyle {
     toolVersion = "10.18.1" // Declare checkstyle version to use.
     configFile = file("config/checkstyle/checkstyle.xml") // Point checkstyle to config file.
     isIgnoreFailures = true // Don't fail the build if checkstyle does not pass.
     isShowViolations = true // Show the violations in any IDE with the checkstyle plugin.
+}
+
+tasks.named("compileJava") {
+    dependsOn("spotlessApply") // Run spotless before compiling with the JDK.
+}
+
+tasks.named("spotlessCheck") {
+    dependsOn("spotlessApply") // Run spotless before checking if spotless ran.
 }

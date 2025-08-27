@@ -12,25 +12,31 @@ import me.dadus33.chatitem.utils.Messages;
 
 public class EnderChestShower extends InvShower {
 
-	private final ItemStack[] items;
-	
-	public EnderChestShower(Player cible) {
-		super("enderchest", cible);
-		
-		Inventory ec = cible.getEnderChest();
-		ItemStack[] tmp = ec.getContents();
-		items = new ItemStack[tmp.length];
-		for(int i = 0; i < ec.getSize(); i++)
-			items[i] = ItemUtils.copyIfExist(tmp[i]);
-	}
-	
-	@Override
-	public void open(Player p) {
-		Inventory inv = ChatItem.getPlatform().createInventory(new CustomInventoryHolder(), items.length, Messages.getMessage("enderchest.name", "%cible%", name));
+    private final ItemStack[] items;
 
-		for(int i = 0; i < items.length; i++)
-			inv.setItem(i, items[i]);
+    public EnderChestShower(Player cible) {
 
-		p.openInventory(inv);
-	}
+        super("enderchest", cible);
+
+        Inventory ec = cible.getEnderChest();
+        ItemStack[] tmp = ec.getContents();
+        items = new ItemStack[tmp.length];
+        for (int i = 0; i < ec.getSize(); i++)
+            items[i] = ItemUtils.copyIfExist(tmp[i]);
+
+    }
+
+    @Override
+    public void open(Player p) {
+
+        Inventory inv = ChatItem.getPlatform().createInventory(new CustomInventoryHolder(), items.length,
+                Messages.getMessage("enderchest.name", "%cible%", name));
+
+        for (int i = 0; i < items.length; i++)
+            inv.setItem(i, items[i]);
+
+        p.openInventory(inv);
+
+    }
+
 }

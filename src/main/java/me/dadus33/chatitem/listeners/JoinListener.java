@@ -14,23 +14,30 @@ import net.md_5.bungee.api.chat.TextComponent;
 
 public class JoinListener implements Listener {
 
-	@SuppressWarnings("deprecation")
-	@EventHandler
-	public void onJoin(PlayerJoinEvent e) {
-		Player p = e.getPlayer();
-		if(!p.isOp())
-			return;
-		ChatItem pl = ChatItem.getInstance();
-		if(pl.isHasNewVersion()) {
-			TextComponent text = new TextComponent(pl.getStorage().updateMessage);
-			text.setHoverEvent(Utils.createTextHover(pl.getStorage().updateHover));
-			text.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://www.spigotmc.org/resources/19064/"));
-			p.spigot().sendMessage(text);
-		}
-	}
-	
-	@EventHandler
-	public void onLeft(PlayerQuitEvent e) {
-		ChatManager.clear(e.getPlayer());
-	}
+    @SuppressWarnings("deprecation")
+    @EventHandler
+    public void onJoin(PlayerJoinEvent e) {
+
+        Player p = e.getPlayer();
+        if (!p.isOp())
+            return;
+        ChatItem pl = ChatItem.getInstance();
+        if (pl.isHasNewVersion()) {
+
+            TextComponent text = new TextComponent(pl.getStorage().updateMessage);
+            text.setHoverEvent(Utils.createTextHover(pl.getStorage().updateHover));
+            text.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, "https://www.spigotmc.org/resources/19064/"));
+            p.spigot().sendMessage(text);
+
+        }
+
+    }
+
+    @EventHandler
+    public void onLeft(PlayerQuitEvent e) {
+
+        ChatManager.clear(e.getPlayer());
+
+    }
+
 }

@@ -25,209 +25,305 @@ import me.dadus33.chatitem.utils.ReflectionUtils;
 
 public class JSONManipulator {
 
-	private static JSONManipulator instance = new JSONManipulator();
+    private static JSONManipulator instance = new JSONManipulator();
 
-	public static JSONManipulator getInstance() {
-		return instance;
-	}
+    public static JSONManipulator getInstance() {
 
-	public static final Class<?> CRAFT_ITEM_STACK_CLASS = PacketUtils.getObcClass("inventory.CraftItemStack");
-	public static final Class<?> NMS_ITEM_STACK_CLASS = getNmsClass("ItemStack", "world.item.");
-	public static final Method AS_NMS_COPY = ReflectionUtils.getMethod(CRAFT_ITEM_STACK_CLASS, "asNMSCopy", ItemStack.class);
-	public static final Class<?> NBT_TAG_COMPOUND = getNmsClass("NBTTagCompound", "nbt.", "CompoundTag");
-	public static final Method SAVE_NMS_ITEM_STACK_METHOD = ReflectionUtils.getMethod(NMS_ITEM_STACK_CLASS, NBT_TAG_COMPOUND, NBT_TAG_COMPOUND);
-	public static final Field MAP = ReflectionUtils.getField(NBT_TAG_COMPOUND, "map", "x");
+        return instance;
 
-	private JsonArray classicTooltip;
-	
-	public static JsonObject parseOrGet(String json) {
-		if(json.startsWith("\"") && json.endsWith("\"")) {// seems to be simple line
-			if(json.startsWith("\"{") && json.endsWith("}\"")) // json in string
-				return JsonParser.parseString(json.substring(1, json.length() - 1).replace("\\\"", "\"")).getAsJsonObject();
-			return JsonParser.parseString("{\"text\":" + json + "}").getAsJsonObject();
-		}
-		try {
-			return JsonParser.parseString(json).getAsJsonObject();
-		} catch (Exception e) {
-			JsonObject obj = new JsonObject();
-			obj.addProperty("text", json);
-			return obj;
-		}
-	}
+    }
 
-	public String parse(Chat chat, String json, ChatAction action, String replacement) throws Exception {
-		JsonObject obj = parseOrGet(json);
+    public static final Class<?> CRAFT_ITEM_STACK_CLASS = PacketUtils.getObcClass("inventory.CraftItemStack");
+    public static final Class<?> NMS_ITEM_STACK_CLASS = getNmsClass("ItemStack", "world.item.");
+    public static final Method AS_NMS_COPY = ReflectionUtils.getMethod(CRAFT_ITEM_STACK_CLASS, "asNMSCopy",
+            ItemStack.class);
+    public static final Class<?> NBT_TAG_COMPOUND = getNmsClass("NBTTagCompound", "nbt.", "CompoundTag");
+    public static final Method SAVE_NMS_ITEM_STACK_METHOD = ReflectionUtils.getMethod(NMS_ITEM_STACK_CLASS,
+            NBT_TAG_COMPOUND, NBT_TAG_COMPOUND);
+    public static final Field MAP = ReflectionUtils.getField(NBT_TAG_COMPOUND, "map", "x");
 
-		JsonObject wrapper = new JsonObject(); // Create a wrapper object for the whole array
-		JsonArray use = Translator.toJson(replacement); // We get the json representation of the old color
-														// formatting method
-		ChatItem.debug("Remplacement: " + replacement + " use: " + use.toString());
-		// There's no public clone method for JSONObjects so we need to parse them every
-		// time
-		JsonObject hover = new JsonObject();
-		if (action.hasItem()) {
-			hover.addProperty("action", "show_item");
+    private JsonArray classicTooltip;
 
-			// Get the JSON representation of the item (well, not really JSON, but rather a
-			// string representation of NBT data)
-			String item = ChatItem.getPlatform().stringifyItem(action.getItem());
-			hover.addProperty("value", item);
-			hover.add("contents", parseOrGet(item));
-		} else {
-			hover.addProperty("action", "show_text");
+    public static JsonObject parseOrGet(String json) {
 
-			// Get the JSON representation of the item (well, not really JSON, but rather a
-			// string representation of NBT data)
-			JsonArray hoverArray = new JsonArray();
-			hoverArray.add(Messages.getMessage(action.getSlot().name().toLowerCase() + ".hover", "%cible%", chat.getItemPlayer().getPlayer().getName()));
-			hover.add("value", hoverArray);
+        if (json.startsWith("\"") && json.endsWith("\"")) {// seems to be simple line
 
-			JsonObject click = new JsonObject();
-			click.addProperty("action", "run_command");
-			click.addProperty("value", action.getCommand());
-			wrapper.add("clickEvent", click);
-		}
+            if (json.startsWith("\"{") && json.endsWith("}\"")) // json in string
+                return JsonParser.parseString(json.substring(1, json.length() - 1).replace("\\\"", "\""))
+                        .getAsJsonObject();
+            return JsonParser.parseString("{\"text\":" + json + "}").getAsJsonObject();
 
-		if (use.size() == 1) {
-			JsonElement extraElement = use.get(0);
-			if (extraElement.isJsonPrimitive())
-				wrapper.addProperty("text", extraElement.getAsString());
-			else if (extraElement.isJsonObject())
-				wrapper.addProperty("text", extraElement.getAsJsonObject().get("text").getAsString());
-			else
-				wrapper.add("extra", use); // add it only if
-		} else if (!use.isEmpty())
-			wrapper.add("extra", use); // add it only if
-		if (!wrapper.has("text"))
-			wrapper.addProperty("text", ""); // The text field is compulsory, even if it's empty
-		ChatItem.debug("Wrapper " + wrapper + " > " + use);
-		wrapper.add("hoverEvent", hover);
+        }
 
-		if (obj.size() == 1 && obj.has("text")) {
-			wrapper.add("text", obj.get("text"));
-			ChatItem.debug("[JsonManipulator] Parsed quick: " + obj.toString() + ", wrapper: " + wrapper);
-			return ChatManager.replaceSeparator(chat, wrapper.toString(), replacement);
-		}
-		if(!obj.has("extra"))
-			obj.add("extra", new JsonArray());
-		ChatItem.debug("Parsing array " + obj.getAsJsonArray("extra") + " FROM: " + obj + ". Result: " + parseArray(obj.getAsJsonArray("extra"), wrapper));
-		obj.add("extra", parseArray(obj.getAsJsonArray("extra"), wrapper));
-		if (!obj.has("text")) {
-			obj.addProperty("text", "");
-		}
-		return obj.toString();
-	}
+        try {
 
-	@SuppressWarnings("deprecation")
-	public String parseEmpty(Chat chat, String json, List<String> tooltip, Player sender) {
-		JsonObject obj = parseOrGet(json);
-		JsonArray array = obj.has("extra") ? obj.getAsJsonArray("extra") : new JsonArray();
-		JsonArray use = Translator.toJson(ChatManager.getNameForChatAction(chat.getPlayer(), chat, ChatItem.getInstance().getStorage()).replace("{name}", sender.getName()).replace("{display-name}", sender.getDisplayName()));
-		JsonObject hover = JsonParser.parseString("{\"action\":\"show_text\", \"value\": \"\"}").getAsJsonObject();
+            return JsonParser.parseString(json).getAsJsonObject();
 
-		StringBuilder oneLineTooltip = new StringBuilder("");
-		int index = 0;
-		for (String m : tooltip) {
-			oneLineTooltip.append(m.replace("{name}", sender.getName()).replace("{display-name}", sender.getDisplayName()));
-			++index;
-			if (index != tooltip.size()) {
-				oneLineTooltip.append('\n');
-			}
-		}
+        } catch (Exception e) {
 
-		hover.add("value", new JsonPrimitive(oneLineTooltip.toString()));
-		if (!tooltip.isEmpty()) {
-			for (JsonElement ob : use)
-				ob.getAsJsonObject().add("hoverEvent", hover);
-			classicTooltip = use;
-		}
-		obj.add("extra", parseArray(array, classicTooltip));
-		if (!obj.has("text")) {
-			obj.addProperty("text", "");
-		}
-		return obj.toString();
-	}
+            JsonObject obj = new JsonObject();
+            obj.addProperty("text", json);
+            return obj;
 
-	private JsonArray parseArray(JsonArray arr, JsonElement tooltip) {
-		JsonArray replacer = new JsonArray();
-		for (int i = 0; i < arr.size(); ++i) {
-			JsonElement element = arr.get(i);
-			if(element.isJsonNull())
-				continue;
-			/*if(separator) {
-				if(ChatManager.containsSeparatorEnd(element.toString()))
-					separator = false;
-				continue;
-			}*/
-			if (element.isJsonObject()) {
-				JsonObject o = element.getAsJsonObject();
-				JsonElement text = o.get("text");
-				ChatItem.debug("adding JsonObject " + o + " (text: " + text + ")");
-				if(text != null && !text.getAsString().isEmpty()) {
-					addParsedStringToArray(text.getAsString(), replacer, o, tooltip);
-				}
-				if (o.has("extra") && !o.get("extra").getAsJsonArray().isEmpty()) {
-					JsonArray jar = o.get("extra").getAsJsonArray();
-					JsonArray tmpArray = parseArray(jar, tooltip);
-					if (!tmpArray.isEmpty()) {
-						o.add("extra", tmpArray);
-						replacer.add(o);
-					}
-					ChatItem.debug("[addParsedJsonObjectToArray] " + jar + " parsed " + tmpArray + " into " + replacer);
-				}
-				
-			} else if (element.isJsonArray()) {
-				JsonArray jar = element.getAsJsonArray();
-				if (!jar.isEmpty()) {
-					replacer.set(i, parseArray(element.getAsJsonArray(), tooltip));
-				}
-			} else if(element.isJsonPrimitive()) {
-				if(ChatManager.containsSeparator(element.getAsString())) {
-					addParsedStringToArray(element.getAsString(), replacer, element, tooltip);
-				} else
-					replacer.add(element); // add basic element
-			}
-		}
-		return replacer;
-	}
+        }
 
-	private void addParsedStringToArray(String msg, JsonArray rep, JsonElement o, JsonElement tooltip) {
-		if (!ChatManager.containsSeparator(msg)) {
-			rep.add(o.deepCopy());
-			return;
-		}
-		ChatItem.debug("[JSONManipulator] Parsed string " + msg + ", rep: " + rep);
-		String current = "";
-		boolean wasSep = false;
-		for (String parts : msg.split("")) {
-			if (ChatManager.equalsSeparator(parts)) {
-				if (!current.isEmpty()) {
-					if(o.isJsonObject()) {
-						JsonObject jsonObj = o.getAsJsonObject().deepCopy();
-						jsonObj.addProperty("text", current); // edit text
-						rep.add(jsonObj); // add with all basic coloring things
-					} else {
-						rep.add(current);
-					}
-					current = "";
-				}
-				rep.add(tooltip);
-				wasSep = true;
-			} else if (wasSep) {
-				if (ChatManager.equalsSeparatorEnd(parts)) // sep finished
-					wasSep = false;
-			} else {
-				current += parts;
-			}
-		}
-		if (!current.isEmpty()) {
-			if(o.isJsonObject()) {
-				JsonObject jsonObj = o.getAsJsonObject().deepCopy();
-				jsonObj.addProperty("text", current); // edit text
-				rep.add(jsonObj); // add with all basic coloring things
-			} else {
-				rep.add(current);
-			}
-		}
-	}
+    }
+
+    public String parse(Chat chat, String json, ChatAction action, String replacement) throws Exception {
+
+        JsonObject obj = parseOrGet(json);
+
+        JsonObject wrapper = new JsonObject(); // Create a wrapper object for the whole array
+        JsonArray use = Translator.toJson(replacement); // We get the json representation of the old color
+                                                        // formatting method
+        ChatItem.debug("Remplacement: " + replacement + " use: " + use.toString());
+        // There's no public clone method for JSONObjects so we need to parse them every
+        // time
+        JsonObject hover = new JsonObject();
+        if (action.hasItem()) {
+
+            hover.addProperty("action", "show_item");
+
+            // Get the JSON representation of the item (well, not really JSON, but rather a
+            // string representation of NBT data)
+            String item = ChatItem.getPlatform().stringifyItem(action.getItem());
+            hover.addProperty("value", item);
+            hover.add("contents", parseOrGet(item));
+
+        } else {
+
+            hover.addProperty("action", "show_text");
+
+            // Get the JSON representation of the item (well, not really JSON, but rather a
+            // string representation of NBT data)
+            JsonArray hoverArray = new JsonArray();
+            hoverArray.add(Messages.getMessage(action.getSlot().name().toLowerCase() + ".hover", "%cible%",
+                    chat.getItemPlayer().getPlayer().getName()));
+            hover.add("value", hoverArray);
+
+            JsonObject click = new JsonObject();
+            click.addProperty("action", "run_command");
+            click.addProperty("value", action.getCommand());
+            wrapper.add("clickEvent", click);
+
+        }
+
+        if (use.size() == 1) {
+
+            JsonElement extraElement = use.get(0);
+            if (extraElement.isJsonPrimitive())
+                wrapper.addProperty("text", extraElement.getAsString());
+            else if (extraElement.isJsonObject())
+                wrapper.addProperty("text", extraElement.getAsJsonObject().get("text").getAsString());
+            else
+                wrapper.add("extra", use); // add it only if
+
+        } else if (!use.isEmpty())
+            wrapper.add("extra", use); // add it only if
+
+        if (!wrapper.has("text"))
+            wrapper.addProperty("text", ""); // The text field is compulsory, even if it's empty
+        ChatItem.debug("Wrapper " + wrapper + " > " + use);
+        wrapper.add("hoverEvent", hover);
+
+        if (obj.size() == 1 && obj.has("text")) {
+
+            wrapper.add("text", obj.get("text"));
+            ChatItem.debug("[JsonManipulator] Parsed quick: " + obj.toString() + ", wrapper: " + wrapper);
+            return ChatManager.replaceSeparator(chat, wrapper.toString(), replacement);
+
+        }
+
+        if (!obj.has("extra"))
+            obj.add("extra", new JsonArray());
+        ChatItem.debug("Parsing array " + obj.getAsJsonArray("extra") + " FROM: " + obj + ". Result: "
+                + parseArray(obj.getAsJsonArray("extra"), wrapper));
+        obj.add("extra", parseArray(obj.getAsJsonArray("extra"), wrapper));
+        if (!obj.has("text")) {
+
+            obj.addProperty("text", "");
+
+        }
+
+        return obj.toString();
+
+    }
+
+    @SuppressWarnings("deprecation")
+    public String parseEmpty(Chat chat, String json, List<String> tooltip, Player sender) {
+
+        JsonObject obj = parseOrGet(json);
+        JsonArray array = obj.has("extra") ? obj.getAsJsonArray("extra") : new JsonArray();
+        JsonArray use = Translator
+                .toJson(ChatManager.getNameForChatAction(chat.getPlayer(), chat, ChatItem.getInstance().getStorage())
+                        .replace("{name}", sender.getName()).replace("{display-name}", sender.getDisplayName()));
+        JsonObject hover = JsonParser.parseString("{\"action\":\"show_text\", \"value\": \"\"}").getAsJsonObject();
+
+        StringBuilder oneLineTooltip = new StringBuilder("");
+        int index = 0;
+        for (String m : tooltip) {
+
+            oneLineTooltip
+                    .append(m.replace("{name}", sender.getName()).replace("{display-name}", sender.getDisplayName()));
+            ++index;
+            if (index != tooltip.size()) {
+
+                oneLineTooltip.append('\n');
+
+            }
+
+        }
+
+        hover.add("value", new JsonPrimitive(oneLineTooltip.toString()));
+        if (!tooltip.isEmpty()) {
+
+            for (JsonElement ob : use)
+                ob.getAsJsonObject().add("hoverEvent", hover);
+            classicTooltip = use;
+
+        }
+
+        obj.add("extra", parseArray(array, classicTooltip));
+        if (!obj.has("text")) {
+
+            obj.addProperty("text", "");
+
+        }
+
+        return obj.toString();
+
+    }
+
+    private JsonArray parseArray(JsonArray arr, JsonElement tooltip) {
+
+        JsonArray replacer = new JsonArray();
+        for (int i = 0; i < arr.size(); ++i) {
+
+            JsonElement element = arr.get(i);
+            if (element.isJsonNull())
+                continue;
+            /*
+             * if(separator) { if(ChatManager.containsSeparatorEnd(element.toString()))
+             * separator = false; continue; }
+             */
+            if (element.isJsonObject()) {
+
+                JsonObject o = element.getAsJsonObject();
+                JsonElement text = o.get("text");
+                ChatItem.debug("adding JsonObject " + o + " (text: " + text + ")");
+                if (text != null && !text.getAsString().isEmpty()) {
+
+                    addParsedStringToArray(text.getAsString(), replacer, o, tooltip);
+
+                }
+
+                if (o.has("extra") && !o.get("extra").getAsJsonArray().isEmpty()) {
+
+                    JsonArray jar = o.get("extra").getAsJsonArray();
+                    JsonArray tmpArray = parseArray(jar, tooltip);
+                    if (!tmpArray.isEmpty()) {
+
+                        o.add("extra", tmpArray);
+                        replacer.add(o);
+
+                    }
+
+                    ChatItem.debug("[addParsedJsonObjectToArray] " + jar + " parsed " + tmpArray + " into " + replacer);
+
+                }
+
+            } else if (element.isJsonArray()) {
+
+                JsonArray jar = element.getAsJsonArray();
+                if (!jar.isEmpty()) {
+
+                    replacer.set(i, parseArray(element.getAsJsonArray(), tooltip));
+
+                }
+
+            } else if (element.isJsonPrimitive()) {
+
+                if (ChatManager.containsSeparator(element.getAsString())) {
+
+                    addParsedStringToArray(element.getAsString(), replacer, element, tooltip);
+
+                } else
+                    replacer.add(element); // add basic element
+
+            }
+
+        }
+
+        return replacer;
+
+    }
+
+    private void addParsedStringToArray(String msg, JsonArray rep, JsonElement o, JsonElement tooltip) {
+
+        if (!ChatManager.containsSeparator(msg)) {
+
+            rep.add(o.deepCopy());
+            return;
+
+        }
+
+        ChatItem.debug("[JSONManipulator] Parsed string " + msg + ", rep: " + rep);
+        String current = "";
+        boolean wasSep = false;
+        for (String parts : msg.split("")) {
+
+            if (ChatManager.equalsSeparator(parts)) {
+
+                if (!current.isEmpty()) {
+
+                    if (o.isJsonObject()) {
+
+                        JsonObject jsonObj = o.getAsJsonObject().deepCopy();
+                        jsonObj.addProperty("text", current); // edit text
+                        rep.add(jsonObj); // add with all basic coloring things
+
+                    } else {
+
+                        rep.add(current);
+
+                    }
+
+                    current = "";
+
+                }
+
+                rep.add(tooltip);
+                wasSep = true;
+
+            } else if (wasSep) {
+
+                if (ChatManager.equalsSeparatorEnd(parts)) // sep finished
+                    wasSep = false;
+
+            } else {
+
+                current += parts;
+
+            }
+
+        }
+
+        if (!current.isEmpty()) {
+
+            if (o.isJsonObject()) {
+
+                JsonObject jsonObj = o.getAsJsonObject().deepCopy();
+                jsonObj.addProperty("text", current); // edit text
+                rep.add(jsonObj); // add with all basic coloring things
+
+            } else {
+
+                rep.add(current);
+
+            }
+
+        }
+
+    }
+
 }

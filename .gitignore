@@ -3,7 +3,7 @@
 src/test/
 build/
 bin/
-target/
+.gradle/
 *.iml
 dependency-reduced-pom.xml
 .classpath

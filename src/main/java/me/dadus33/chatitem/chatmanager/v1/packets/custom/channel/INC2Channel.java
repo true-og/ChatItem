@@ -22,89 +22,139 @@ import me.dadus33.chatitem.utils.ReflectionUtils;
 import me.dadus33.chatitem.utils.Version;
 
 public class INC2Channel extends ChannelAbstract {
-	
-	private final ChannelInboundHandler boundHandler;
-	private ChannelPipeline pipeline;
-	
-	public INC2Channel(CustomPacketManager customPacketManager) {
-		super(customPacketManager);
-		boundHandler = new ChannelInboundHandler(customPacketManager);
-		try {
-			Object mcServer = ReflectionUtils.callMethod(PacketUtils.getCraftServer(), Version.getVersion().equals(Version.V1_17) ? "getServer" : "b");
-			Object co = ReflectionUtils.getFirstWith(mcServer, PacketUtils.getNmsClass("MinecraftServer", "server."), PacketUtils.getNmsClass("ServerConnection", "server.network."));
-			((List<ChannelFuture>) ReflectionUtils.getObject(co, "f")).forEach((channelFuture) -> {
-				pipeline = channelFuture.channel().pipeline();
-				pipeline.addFirst(boundHandler);
-			});
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-	
-	@Override
-	protected void stopPipelines() {
-		pipeline.remove(boundHandler);
-		boundHandler.clean();
-	}
 
-	@Override
-	public void addChannel(final Player player, String endChannelName) {
-		getOrCreateAddChannelExecutor().execute(() -> {
-			if(!player.isOnline())
-				return;
-			try {
-				Channel channel = getChannel(player);
-				// Managing outgoing packet (to the player)
-				channel.pipeline().addAfter(KEY_HANDLER_SERVER, KEY_SERVER + endChannelName, new ChannelHandlerSent(player));
-			} catch (NoSuchElementException e) {
-				// appear when the player's channel isn't accessible because of reload.
-				getPacketManager().getPlugin().getLogger().warning("Please, don't use reload, this can produce some problem. Currently, " + player.getName() + " isn't fully checked because of that. More details: " + e.getMessage() + " (NoSuchElementException)");
-			} catch (IllegalArgumentException e) {
-				if(e.getMessage().contains("Duplicate handler")) {
-					removeChannel(player, endChannelName);
-					addChannel(player, endChannelName);
-				} else
-					getPacketManager().getPlugin().getLogger().severe("Error while loading Packet channel. " + e.getMessage() + ". Please, prefer restart than reload.");
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		});
-	}
+    private final ChannelInboundHandler boundHandler;
+    private ChannelPipeline pipeline;
 
-	@Override
-	public void removeChannel(Player player, String endChannelName) {
-		getOrCreateRemoveChannelExecutor().execute(() -> {
-			try {
-				final Channel channel = getChannel(player);
-				if(channel.pipeline().get(KEY_SERVER + endChannelName) != null)
-					channel.pipeline().remove(KEY_SERVER + endChannelName);
-			} catch (Exception e) {
-				ChatItem.getInstance().getLogger().warning("Failed to remove channel for " + player.getName() + ". Reason: " + e.getMessage() + " (" + e.getStackTrace()[0].toString() + ")");
-			}
-		});
-	}
+    public INC2Channel(CustomPacketManager customPacketManager) {
 
-	@Override
-	public Channel getChannel(Player p) throws Exception {
-		Object playerConnection = getPlayerConnection(p);
-		Object networkManager = ReflectionUtils.getFirstWith(playerConnection, PacketUtils.getNmsClass("NetworkManager", "network."));
-		return ReflectionUtils.getFirstWith(networkManager, Channel.class);
-	}
+        super(customPacketManager);
+        boundHandler = new ChannelInboundHandler(customPacketManager);
+        try {
 
-	private class ChannelHandlerSent extends ChannelOutboundHandlerAdapter {
+            Object mcServer = ReflectionUtils.callMethod(PacketUtils.getCraftServer(),
+                    Version.getVersion().equals(Version.V1_17) ? "getServer" : "b");
+            Object co = ReflectionUtils.getFirstWith(mcServer, PacketUtils.getNmsClass("MinecraftServer", "server."),
+                    PacketUtils.getNmsClass("ServerConnection", "server.network."));
+            ((List<ChannelFuture>) ReflectionUtils.getObject(co, "f")).forEach((channelFuture) -> {
 
-		private final Player owner;
+                pipeline = channelFuture.channel().pipeline();
+                pipeline.addFirst(boundHandler);
 
-		public ChannelHandlerSent(Player player) {
-			this.owner = player;
-		}
+            });
 
-		@Override
-		public void write(ChannelHandlerContext ctx, Object packet, ChannelPromise promise) throws Exception {
-			ChatItemPacket nextPacket = getPacketManager().onPacketSent(PacketType.getType(packet.getClass().getSimpleName()), owner, packet);
-			if(nextPacket != null && nextPacket.isCancelled())
-				return;
-			super.write(ctx, nextPacket == null ? packet : nextPacket.getPacket(), promise);
-		}
-	}
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
+        }
+
+    }
+
+    @Override
+    protected void stopPipelines() {
+
+        pipeline.remove(boundHandler);
+        boundHandler.clean();
+
+    }
+
+    @Override
+    public void addChannel(final Player player, String endChannelName) {
+
+        getOrCreateAddChannelExecutor().execute(() -> {
+
+            if (!player.isOnline())
+                return;
+            try {
+
+                Channel channel = getChannel(player);
+                // Managing outgoing packet (to the player)
+                channel.pipeline().addAfter(KEY_HANDLER_SERVER, KEY_SERVER + endChannelName,
+                        new ChannelHandlerSent(player));
+
+            } catch (NoSuchElementException e) {
+
+                // appear when the player's channel isn't accessible because of reload.
+                getPacketManager().getPlugin().getLogger()
+                        .warning("Please, don't use reload, this can produce some problem. Currently, "
+                                + player.getName() + " isn't fully checked because of that. More details: "
+                                + e.getMessage() + " (NoSuchElementException)");
+
+            } catch (IllegalArgumentException e) {
+
+                if (e.getMessage().contains("Duplicate handler")) {
+
+                    removeChannel(player, endChannelName);
+                    addChannel(player, endChannelName);
+
+                } else
+                    getPacketManager().getPlugin().getLogger().severe("Error while loading Packet channel. "
+                            + e.getMessage() + ". Please, prefer restart than reload.");
+
+            } catch (Exception e) {
+
+                e.printStackTrace();
+
+            }
+
+        });
+
+    }
+
+    @Override
+    public void removeChannel(Player player, String endChannelName) {
+
+        getOrCreateRemoveChannelExecutor().execute(() -> {
+
+            try {
+
+                final Channel channel = getChannel(player);
+                if (channel.pipeline().get(KEY_SERVER + endChannelName) != null)
+                    channel.pipeline().remove(KEY_SERVER + endChannelName);
+
+            } catch (Exception e) {
+
+                ChatItem.getInstance().getLogger().warning("Failed to remove channel for " + player.getName()
+                        + ". Reason: " + e.getMessage() + " (" + e.getStackTrace()[0].toString() + ")");
+
+            }
+
+        });
+
+    }
+
+    @Override
+    public Channel getChannel(Player p) throws Exception {
+
+        Object playerConnection = getPlayerConnection(p);
+        Object networkManager = ReflectionUtils.getFirstWith(playerConnection,
+                PacketUtils.getNmsClass("NetworkManager", "network."));
+        return ReflectionUtils.getFirstWith(networkManager, Channel.class);
+
+    }
+
+    private class ChannelHandlerSent extends ChannelOutboundHandlerAdapter {
+
+        private final Player owner;
+
+        public ChannelHandlerSent(Player player) {
+
+            this.owner = player;
+
+        }
+
+        @Override
+        public void write(ChannelHandlerContext ctx, Object packet, ChannelPromise promise) throws Exception {
+
+            ChatItemPacket nextPacket = getPacketManager()
+                    .onPacketSent(PacketType.getType(packet.getClass().getSimpleName()), owner, packet);
+            if (nextPacket != null && nextPacket.isCancelled())
+                return;
+            super.write(ctx, nextPacket == null ? packet : nextPacket.getPacket(), promise);
+
+        }
+
+    }
+
 }

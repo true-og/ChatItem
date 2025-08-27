@@ -15,38 +15,44 @@ import me.dadus33.chatitem.utils.Messages;
 import me.dadus33.chatitem.utils.Version;
 
 public interface IPlatform {
-	
-	String getName();
 
-	Inventory createInventory(InventoryHolder holder, int slot, String name);
+    String getName();
 
-	ItemStack createItemStack(Material type, String name);
-	
-	default ItemStack createTranslatedItemStack(Material type, String key, Object... placeholders) {
-		return createItemStack(type, Messages.getMessage(key + ".name", placeholders), Messages.getMessageList(key + ".lore", placeholders));
-	}
-	
-	default ItemStack createItemStack(Material type, String name, String... lore) {
-		return createItemStack(type, name, Arrays.asList(lore));
-	}
-	
-	ItemStack createItemStack(Material type, String name, List<String> lore);
-	
-	String getItemDisplayName(ItemStack item);
-	
-	String getPluginVersion(Plugin plugin);
-	
-	Version getMinecraftVersion();
-	
-	String getNMSVersion();
-	
-	boolean hasBaseComponentSerializer();
-	
-	String baseComponentToJson(Object obj);
-	
-	Object jsonToBaseComponent(String json);
-	
-	void sendMessage(Player to, Player origin, ChatAction action, String msg);
-	
-	String stringifyItem(ItemStack item);
+    Inventory createInventory(InventoryHolder holder, int slot, String name);
+
+    ItemStack createItemStack(Material type, String name);
+
+    default ItemStack createTranslatedItemStack(Material type, String key, Object... placeholders) {
+
+        return createItemStack(type, Messages.getMessage(key + ".name", placeholders),
+                Messages.getMessageList(key + ".lore", placeholders));
+
+    }
+
+    default ItemStack createItemStack(Material type, String name, String... lore) {
+
+        return createItemStack(type, name, Arrays.asList(lore));
+
+    }
+
+    ItemStack createItemStack(Material type, String name, List<String> lore);
+
+    String getItemDisplayName(ItemStack item);
+
+    String getPluginVersion(Plugin plugin);
+
+    Version getMinecraftVersion();
+
+    String getNMSVersion();
+
+    boolean hasBaseComponentSerializer();
+
+    String baseComponentToJson(Object obj);
+
+    Object jsonToBaseComponent(String json);
+
+    void sendMessage(Player to, Player origin, ChatAction action, String msg);
+
+    String stringifyItem(ItemStack item);
+
 }

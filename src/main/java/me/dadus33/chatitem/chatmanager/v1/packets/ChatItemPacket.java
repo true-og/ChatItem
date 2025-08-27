@@ -4,54 +4,77 @@ import org.bukkit.entity.Player;
 
 public class ChatItemPacket {
 
-	protected final Player player;
-	protected Object packet;
-	protected PacketType type;
-	protected boolean cancel = false;
-	
-	public ChatItemPacket(PacketType type, Object packet, Player player) {
-		this.player = player;
-		this.packet = packet;
-		this.type = type;
-	}
-	
-	public Player getPlayer() {
-		return player;
-	}
+    protected final Player player;
+    protected Object packet;
+    protected PacketType type;
+    protected boolean cancel = false;
 
-	public boolean hasPlayer() {
-		return player != null;
-	}
-	
-	public String getPlayername() {
-		return getPlayer().getName();
-	}
-	
-	public Object getPacket() {
-		return packet;
-	}
-	
-	public void setPacket(Object packet) {
-		this.packet = packet;
-	}
+    public ChatItemPacket(PacketType type, Object packet, Player player) {
 
-	public String getPacketName() {
-		return packet.getClass().getSimpleName();
-	}
-	
-	public PacketType getPacketType() {
-		return type;
-	}
-	
-	public boolean isCancelled() {
-		return cancel;
-	}
-	
-	public void setCancelled(boolean cancel) {
-		this.cancel = cancel;
-	}
+        this.player = player;
+        this.packet = packet;
+        this.type = type;
 
-	public PacketContent getContent() {
-		return new PacketContent(this);
-	}
+    }
+
+    public Player getPlayer() {
+
+        return player;
+
+    }
+
+    public boolean hasPlayer() {
+
+        return player != null;
+
+    }
+
+    public String getPlayername() {
+
+        return getPlayer().getName();
+
+    }
+
+    public Object getPacket() {
+
+        return packet;
+
+    }
+
+    public void setPacket(Object packet) {
+
+        this.packet = packet;
+
+    }
+
+    public String getPacketName() {
+
+        return packet.getClass().getSimpleName();
+
+    }
+
+    public PacketType getPacketType() {
+
+        return type;
+
+    }
+
+    public boolean isCancelled() {
+
+        return cancel;
+
+    }
+
+    public void setCancelled(boolean cancel) {
+
+        this.cancel = cancel;
+
+    }
+
+    public PacketContent getContent() {
+
+        return new PacketContent(this);
+
+    }
+
 }

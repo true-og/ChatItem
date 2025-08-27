@@ -10,26 +10,44 @@ import com.willfp.ecoenchants.display.EnchantDisplay;
 
 public class EcoEnchantsV10Support {
 
-	private static EnchantDisplay enchantDisplay;
+    private static EnchantDisplay enchantDisplay;
 
-	public static EnchantDisplay getEnchantDisplay() {
-		if (enchantDisplay == null) {
-			try {
-				enchantDisplay = EnchantDisplay.class.getConstructor(EcoEnchantsPlugin.class).newInstance(Bukkit.getPluginManager().getPlugin("EcoEnchants"));
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-		}
-		return enchantDisplay;
-	}
+    public static EnchantDisplay getEnchantDisplay() {
 
-	public static void display(ItemStack item) {
-		try {
-			DisplayProperties display = DisplayProperties.class.getDeclaredConstructor(boolean.class, boolean.class, ItemStack.class).newInstance(false, false, item);
-			getEnchantDisplay().display(item, (Player) null, display, new Object[] { false });
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+        if (enchantDisplay == null) {
+
+            try {
+
+                enchantDisplay = EnchantDisplay.class.getConstructor(EcoEnchantsPlugin.class)
+                        .newInstance(Bukkit.getPluginManager().getPlugin("EcoEnchants"));
+
+            } catch (Exception e) {
+
+                e.printStackTrace();
+
+            }
+
+        }
+
+        return enchantDisplay;
+
+    }
+
+    public static void display(ItemStack item) {
+
+        try {
+
+            DisplayProperties display = DisplayProperties.class
+                    .getDeclaredConstructor(boolean.class, boolean.class, ItemStack.class)
+                    .newInstance(false, false, item);
+            getEnchantDisplay().display(item, (Player) null, display, new Object[] { false });
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
+        }
+
+    }
 
 }

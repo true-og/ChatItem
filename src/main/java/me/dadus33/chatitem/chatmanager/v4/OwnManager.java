@@ -5,18 +5,23 @@ import me.dadus33.chatitem.chatmanager.ChatManager;
 
 public class OwnManager extends ChatManager {
 
-	@Override
-	public String getName() {
-		return "Own Formatter";
-	}
+    @Override
+    public String getName() {
 
-	@Override
-	public String getId() {
-		return "ownformatter";
-	}
+        return "Own Formatter";
 
-	@Override
-	public void unload(ChatItem pl) {
-		
-	}
+    }
+
+    @Override
+    public String getId() {
+
+        return "ownformatter";
+
+    }
+
+    @Override
+    public void unload(ChatItem pl) {
+
+    }
+
 }
