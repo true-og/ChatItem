@@ -1,1 +1,1 @@
-rootProject.name = "ChatItem-OG"
+rootProject.name = "ChatItem"
