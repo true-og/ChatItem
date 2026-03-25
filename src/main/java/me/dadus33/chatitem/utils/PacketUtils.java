@@ -162,7 +162,8 @@ public class PacketUtils {
 
             Object entityPlayer = getEntityPlayer(p);
             return ReflectionUtils.getFirstWith(entityPlayer, entityPlayer.getClass(),
-                    getNmsClass("PlayerConnection", "server.network."));
+                    getNmsClass(Version.getVersion().isNewerOrEquals(Version.V1_21_11) ? "ServerGamePacketListenerImpl"
+                            : "PlayerConnection", "server.network."));
 
         } catch (Exception e) {
 

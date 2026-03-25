@@ -11,7 +11,8 @@ public enum Version {
     V1_10(201, 210, 10), // 1.10.X - Starts with 201 because why not.
     V1_11(301, 316, 11), V1_12(317, 340, 12), V1_13(341, 440, 13), V1_14(441, 500, 14), V1_15(550, 578, 15),
     V1_16(700, 754, 16), V1_17(755, 756, 17), V1_18(757, 758, 18), V1_19(759, 762, 19), V1_20(763, 765, 20),
-    V1_20_6(766, 766, 20.6), V1_21(767, 1000, 21), HIGHER(Integer.MAX_VALUE, -1, Integer.MAX_VALUE);
+    V1_20_6(766, 766, 20.6), V1_21(767, 773, 21), V1_21_11(774, 1000, 21.11),
+    HIGHER(Integer.MAX_VALUE, -1, Integer.MAX_VALUE);
 
     // Latest version should always have the upper limit set to Integer.MAX_VALUE so
     // I don't have to update the plugin for every minor protocol change
