@@ -72,7 +72,6 @@ dependencies {
     compileOnly(files("libs/ProtocolLib-5.0.jar")) // Import Legacy ProtocolLib API.
     compileOnly("com.meowj:LangUtils:1.9")
     compileOnly("com.viaversion:viaversion-api:5.0.3")
-    compileOnly("io.shevchik:ProtocolSupport:1.18.2-1-dev")
     compileOnly("io.netty:netty-all:4.1.58.Final")
     compileOnly("dev.majek:HexNicks:3.1.1")
     compileOnly("net.kyori:adventure-api:4.17.0")
