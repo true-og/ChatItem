@@ -83,7 +83,7 @@ dependencies {
     compileOnly("com.willfp:eco:6.66.1")
     compileOnly("me.clip:placeholderapi:2.11.6")
     compileOnly("be.maximvdw:MVdWPlaceholderAPI:3.1.1-SNAPSHOT")
-    compileOnly("com.github.MilkBowl:VaultAPI:1.7.1")
+    compileOnly("net.luckperms:api:5.5")
     compileOnly("net.essentialsx:EssentialsX:2.21.0-SNAPSHOT")
 }
 

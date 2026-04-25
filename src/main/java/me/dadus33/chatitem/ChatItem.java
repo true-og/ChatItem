@@ -34,7 +34,7 @@ import me.dadus33.chatitem.hook.placeholders.IPlaceholders;
 import me.dadus33.chatitem.hook.placeholders.MVdWPlaceholderAPIHook;
 import me.dadus33.chatitem.hook.placeholders.OwnPlaceholder;
 import me.dadus33.chatitem.hook.placeholders.PlaceholderAPIHook;
-import me.dadus33.chatitem.hook.placeholders.VaultPlaceholderHook;
+import me.dadus33.chatitem.hook.placeholders.LuckPermsPlaceholderHook;
 import me.dadus33.chatitem.invsee.InvShower;
 import me.dadus33.chatitem.itemnamer.NamerManager;
 import me.dadus33.chatitem.listeners.InventoryListener;
@@ -263,10 +263,10 @@ public class ChatItem extends JavaPlugin {
 
         }
 
-        if (pm.isPluginEnabled("Vault")) {
+        if (pm.isPluginEnabled("LuckPerms")) {
 
-            plugins.add("Vault");
-            PLACEHOLDERS.add(new VaultPlaceholderHook());
+            plugins.add("LuckPerms");
+            PLACEHOLDERS.add(new LuckPermsPlaceholderHook());
 
         }
 
