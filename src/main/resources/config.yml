@@ -2,10 +2,10 @@
 # For info visit
 # Spigotmc: https://www.spigotmc.org/resources/19064/
 # Discord: https://discord.gg/yng5PPf62h
- 
+
 # Version info, DON'T TOUCH
 config-version: 13
- 
+
 # By default, it's in "all" mode.
 #
 # Available mode :
@@ -18,7 +18,7 @@ config-version: 13
 # - "paper" : Using the paper API system to manage chat
 # You can replace 'both' by another mode that should correspond to what you want.
 # If you don't know which one use, come on discord (link at begin of config or in spigotmc)
-manager: "all"
+manager: "packet"
 
 #General configuration
 general:
@@ -99,7 +99,7 @@ general:
   # if the user doesn't have permission or if the user is on cooldown?
   let-message-through: true
   # Should we allow users to show their hands off
-  deny-if-no-item: false
+  deny-if-no-item: true
   # Define if the console should see the real message or with the placeholder.
   # By default on true to show the replaced placeholder.
   # Warn: this cannot works with some manager.
@@ -108,7 +108,7 @@ general:
   # Bellow you can configure that behaviour.
   hand:
     # Should we completely disable users being able to show their hands off
-    disabled: false
+    disabled: true
     # The name of the hand chat message.
     name: "&b&l&o{display-name}&b&l&o's hand"
     # The lore of the hand chat message.
@@ -130,31 +130,31 @@ general:
     action: "show_both"
     tooltip:
       - "&7Failed to parse item for your client"
-  
+
   # Format used with using /chatitem show
   show: "&6%name%'s item is %item%"
 
-  #  Here you can set when the players should see the no-permission message (defined in the 'Messages' section bellow).
+  #  Here you can set when the players should see the no-permission message (defined in the 'Messages' section below).
   # 'normal' dictates whether the user should see the message when using the placeholder in normal chat, and 'command'
   # sets whether the user should see it when using the placeholder in a command.
   show-no-permission-message:
     normal: true
-    command: false
+    command: true
   # Manage permission to use placeholders
   permission:
-    enabled: false
+    enabled: true
     name: "chatitem.use"
   #  Here you can set the limit on how many placeholders a user is allowed to use inside a message.
   # Allowing too many placeholders can result in client crashes.
   limit: 8
   #  The cooldown, in seconds, between allowing players to send messages with items. Setting this to 0
   # will remove the cooldown entirely.
-  cooldown: 60
+  cooldown: 16
   # All items that are not allowed to be showed
   ignored_items:
   - "SOME_ITEM"
   # Check if the plugin have update
-  check-update: true
+  check-update: false
   language: "en_gb"
   sub-commands:
     broadcast: true
@@ -163,9 +163,9 @@ general:
   ownformatter:
     format: "%name%: %message%"
   # End of WIP config section.
-    
- 
- 
+
+
+
 #  Messages section. You can disable any of them by simply leaving them empty, like this: ""
 messages:
   # The message sent if showing off hands is disabled and the user isn't holding an item.
@@ -304,7 +304,7 @@ messages:
 
 # If ChatItem send message using DiscordSRV
 # This option will be ignored if you don't have it
-discord-srv-send-our: true
+discord-srv-send-our: false
 
 manager-config:
   paper:
