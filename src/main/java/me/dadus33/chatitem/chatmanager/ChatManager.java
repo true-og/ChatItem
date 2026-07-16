@@ -347,6 +347,53 @@ public abstract class ChatManager {
 
     }
 
+    public static String replaceItemsWithNames(String message) {
+
+        if (message == null || !containsSeparator(message))
+            return message;
+        String fixed = fixSeparator(message);
+        Storage c = ChatItem.getInstance().getStorage();
+        StringBuilder result = new StringBuilder();
+        StringBuilder idBuilder = new StringBuilder();
+        boolean inId = false;
+        for (int i = 0; i < fixed.length(); i++) {
+
+            char ch = fixed.charAt(i);
+            if (ch == SEPARATOR) {
+
+                inId = true;
+                idBuilder.setLength(0);
+
+            } else if (ch == SEPARATOR_END && inId) {
+
+                inId = false;
+                String id = idBuilder.toString();
+                if (Utils.isInteger(id)) {
+
+                    Chat chat = Chat.getChat(Integer.parseInt(id)).orElse(null);
+                    if (chat != null)
+                        result.append(getNameForChatAction(chat.getPlayer(), chat, c));
+
+                }
+
+            } else if (inId) {
+
+                idBuilder.append(ch);
+
+            } else {
+
+                result.append(ch);
+
+            }
+
+        }
+
+        if (inId)
+            result.append(SEPARATOR).append(idBuilder);
+        return result.toString();
+
+    }
+
     @Deprecated
     public static String getHandName(Player p) {
 
